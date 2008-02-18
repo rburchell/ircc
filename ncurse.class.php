@@ -62,7 +62,7 @@ class ncurse {
 		}
 
 		$this->ircoutput = ncurses_newwin($this->lines-5, $this->columns, 0, 0);
-		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines-1, 0);
+		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
 
 		ncurses_refresh();
 		ncurses_wrefresh($this->ircoutput);
