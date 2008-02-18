@@ -61,7 +61,7 @@ class ncurse {
 			$this->cl .= ' ';
 		}
 
-		$this->ircoutput = ncurses_newwin($this->lines-5, $this->columns, 0, 0);
+		$this->ircoutput = ncurses_newwin($this->lines-2, $this->columns, 0, 0);
 		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
 
 		ncurses_refresh();
@@ -94,14 +94,16 @@ class ncurse {
 
 		$ex = explode("\n", $this->ircout_content);
 
-		for($x = 0; $x < $this->lines-5; $x++){
+		for($x = 0; $x < $this->lines-2; $x++){
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
 		}
 
 		$linetype = NULL;
 		$ll = 0;
-		$linesleft = $this->lines-5;
-		for($x = count($ex)-$fd; $x >= 0; $x--){
+		$linesleft = $this->lines-2;
+
+		for($x = count($ex)-$fd; $x >= 0; $x--)
+		{
 			if($linesleft == 0){
 				$x = -1;
 			} else {
