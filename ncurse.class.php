@@ -37,7 +37,6 @@ class ncurse {
 	var $lines, $columns;
 	var $userinputt;
 	var $userinputp = 0;
-	//var $infow;
 	var $cl;
 	var $sendhis = array();
 	var $sendhispt;
@@ -56,23 +55,18 @@ class ncurse {
 
 		ncurses_getmaxyx(&$this->mainwin, $this->lines, $this->columns);
 		
-		for($x = 0; $x < $this->columns; $x++){
+		// Generate a blank line so we can write over the output
+		for($x = 0; $x < $this->columns - 1; $x++)
+		{
 			$this->cl .= ' ';
 		}
 
 		$this->ircoutput = ncurses_newwin($this->lines-5, $this->columns, 0, 0);
-		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines-3, 0);
-		//$this->infow = ncurses_newwin(4, $this->columns, $this->lines-5, 0);
-
-		for($x = 0; $x < $this->columns; $x++){
-			$l .= '-';
-		}
-		ncurses_mvwaddstr($this->userinputw, 0, 0, $l);
+		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines-1, 0);
 
 		ncurses_refresh();
 		ncurses_wrefresh($this->ircoutput);
 		ncurses_wrefresh($this->userinputw);
-		//ncurses_wrefresh($this->infow);
 	}
 
 
