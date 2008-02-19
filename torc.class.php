@@ -43,16 +43,14 @@ class torc {
 		$this->output->addtoircout(IRCC_VER . " - irc client\n");
 
 		$username = 'torc';
-		if(!empty($_ENV['LOGNAME'])){
+		if(!empty($_ENV['LOGNAME']))
+		{
 			$username = $_ENV['LOGNAME'];
-		} elseif(!empty($_ENV['USER'])){
+		}
+		elseif(!empty($_ENV['USER']))
+		{
 			$username = $_ENV['USER'];
 		}
-		if($username == 'root'){
-			$this->output->addtoircout("you are running torc as root! this can be very stupid! setting username to 'torc'\n");
-			$username = 'torc';
-		}
-
 
 		if($nick == -2)
 			$nick = $username;
@@ -64,8 +62,6 @@ class torc {
 			$this->output->addtoircout("use the /SERVER command to connect to a server\n");
 			$this->output->addtoircout("/QUIT to quit\n\n\n");
 		}
-
-	//	$this->irc->connect("darkwired.ath.cx",6667, false, "rainman", "orion", "server", "rainman", "rianman");
 
 		$updct = 100;
 		$prct = 0;
