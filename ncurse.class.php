@@ -140,6 +140,7 @@ class ncurse
 				if($this->scrollfd < 0)
 					$this->scrollfd = 0;
 				$this->buildircout($this->scrollfd);
+				return false;
 			}
 			elseif ($c == NCURSES_KEY_PPAGE)
 			{
@@ -148,65 +149,38 @@ class ncurse
 				if ($this->scrollfd > count($ex))
 					$this->scrollfd = count($ex);
 				$this->buildircout($this->scrollfd);
+				return false;
 			}
-/*			elseif($c == chr(0x1B))
+			elseif ($c == NCURSES_KEY_UP)
 			{
-				// This is all for pageup/down etc. It's also crack.
-				$read = array($this->stdin);
-				$write = $except = NULL;
-				if(stream_select($read, $write, $except, 0, 80000))
+				if($this->sendhispt >= 0)
 				{
-					$c = fgetc($this->stdin);
-					if($c == chr(0x5B))
+					if(!$this->sendhislu)
 					{
-						$read = array($this->stdin);
-						$write = $except = NULL;
-						if(stream_select($read, $write, $except, 0, 80000))
-						{
-							$c = fgetc($this->stdin);
-							$this->addtoircout("TORX: ".ord($c)."\n");
-							switch($c)
-							{
-							case chr(0x41):
-								if($this->sendhispt >= 0)
-								{
-									if(!$this->sendhislu)
-									{
-										$this->sendhispt--;
-										$this->sendhislu = true;
-									}
-									$this->userinputt = $this->sendhis[$this->sendhispt];
-									$this->sendhispt--;
-									$this->setuserinput();
-								}
-								break;
-
-							case chr(0x42):
-								if($this->sendhispt+1 < count($this->sendhis))
-								{
-									if($this->sendhislu)
-									{
-										$this->sendhispt++;
-										$this->sendhislu = false;
-									}
-									$this->sendhispt++;
-									$this->userinputt = $this->sendhis[$this->sendhispt];
-									$this->setuserinput();
-								}
-								break;
-
-							case chr(0x35):
-								fgetc($this->stdin);
-								break;
-
-							case chr(0x53); // 36
-
-
-							}
-						}
+						$this->sendhispt--;
+						$this->sendhislu = true;
 					}
+					$this->userinputt = $this->sendhis[$this->sendhispt];
+					$this->sendhispt--;
+					$this->setuserinput();
 				}
-			}*/
+				return false;
+			}
+			elseif ($c == NCURSES_KEY_DOWN)
+			{
+				if($this->sendhispt+1 < count($this->sendhis) - 1)
+				{
+					if($this->sendhislu)
+					{
+						$this->sendhispt++;
+						$this->sendhislu = false;
+					}
+					$this->sendhispt++;
+					$this->userinputt = $this->sendhis[$this->sendhispt];
+					$this->setuserinput();
+				}
+				return false;
+			}
 			else
 			{
 				$this->userinputt .= chr($c);
