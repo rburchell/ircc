@@ -32,8 +32,7 @@ set_time_limit(0);
 error_reporting(0);
 ob_implicit_flush();
 
-
-$torc_ver = 'torc-1.3.0';
+define('IRCC_VER', 'ircc-0.01');
 
 include "ncurse.class.php";
 include "irc.class.php";
@@ -57,7 +56,7 @@ class torc {
 
 		$this->irc = new irc();
 
-		$this->output->addtoircout($torc_ver . " - irc client\n");
+		$this->output->addtoircout(IRCC_VER . " - irc client\n");
 
 		$username = 'torc';
 		if(!empty($_ENV['LOGNAME'])){
