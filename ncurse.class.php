@@ -116,6 +116,14 @@ class ncurse
 		unset($this->aBuffers[$iBuffer]);
 	}
 
+	function IsBuffer($iBuffer)
+	{
+		if (isset($this->aBuffers[$iBuffer]))
+			return true;
+
+		return false;
+	}
+
 	/*
 	 * "Switches" to a new buffer specified by unique ID and redraws it.
 	 */

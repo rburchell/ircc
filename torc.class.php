@@ -166,7 +166,10 @@ class torc
 				switch(strtolower($cmd))
 				{
 					case 'w':
-						$this->output->DrawBuffer($ex[1]);
+						if ($this->output->IsBuffer($ex[1]))
+							$this->output->DrawBuffer($ex[1]);
+						else
+							$this->output->Output(BUFFER_CURRENT, "That is not a valid window.");
 						break;
 					case 'server':
 					case 'connect':
