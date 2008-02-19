@@ -112,8 +112,10 @@ class ncurse
 	{
 		$read = array($this->stdin);
 		$write = $except = NULL;
+
 		while(stream_select($read, $write, $except, 0, 80000))
 		{
+			// XXX: fgetc? what crack smoker wrote this. try read a full buf, not one char at a time..
 			$c = fgetc($this->stdin);
 
 			if ($c == chr(13))
@@ -132,6 +134,8 @@ class ncurse
 				$this->setuserinput();
 				return false;
 			}
+/*
+No clue what this is, but it smells like crack
 			elseif($c == chr(0x1B))
 			{
 				$read = array($this->stdin);
@@ -189,7 +193,7 @@ class ncurse
 					}
 				}
 			}
-			else
+*/			else
 			{
 				$this->userinputt .= $c;
 				$this->setuserinput();

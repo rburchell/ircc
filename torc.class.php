@@ -15,7 +15,7 @@
 set_error_handler(array("torc", "ErrorHandler"));
 date_default_timezone_set("UTC"); // XXX guess the tz?
 set_time_limit(0);
-error_reporting(0);
+error_reporting(E_ALL);
 ob_implicit_flush();
 
 define('IRCC_VER', 'ircc-0.01');
@@ -94,42 +94,182 @@ function parse_line($sLine)
 class torc
 {
 	var $irc, $output;
+	var $username, $nick;
+
+
+	function poll()
+	{
+		// Polls this->output->stdin and all IRC sockets for activity, initiating callbacks if necessary.
+		$aRead = array();
+		$aWrite = $aExcept = array(); // XXX we should eventually poll for write too.
+
+		$aRead[] = $this->output->stdin;
+
+		if ($this->irc->sp)
+			$aRead[] = $this->irc->sp;
+
+		$iStreams = stream_select($aRead, $aWrite, $aExcept, 1);
+
+		if ($iStreams == 0)
+			return;
+
+		foreach ($aRead as $iSocket)
+		{
+			if ($iSocket == $this->output->stdin)
+			{
+				// stdin ready, hit the callback
+				$this->callback_process_stdin();
+			}
+			else
+			{
+				// irc callback, shouldn't be called yet. ignore event.
+			}
+		}
+	}
+
+	// Callback which is hit whenever stdin is ready for read.
+	function callback_process_stdin()
+	{
+		if (($input = $this->output->getuserinput()))
+		{
+			//we have a line of input
+			if(substr($input, 0, 1) == "/")
+			{
+				// Tear off /
+				$input = substr($input, 1);
+				// This is all ugly, really. Backwards compatibility.
+				$ex = parse_line($input);
+				$cmd = $ex[0];
+				$msg = implode($ex, " ");
+				$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
+
+				switch(strtolower($cmd))
+				{
+					case 'server':
+					case 'connect':
+						if(!empty($ex[2]))
+							$port = (int)$ex[2];
+						else
+							$port = 6667;
+
+						if (empty($ex[3]))
+							$ex[3] = "";
+
+						$this->irc->connect($ex[1], $port, $ex[3], $this->username, "torc", "server", "torc - torx irc user", $this->nick);
+						break;
+					case 'quit':
+						$this->irc->squit($msgf);
+						$this->output->quit();
+						die();
+						break;
+					case 'join':
+						$this->irc->sjoin($ex[1]);
+						break;
+					case 'nick':
+						$this->irc->snick($ex[1]);
+						break;
+					case 'part':
+						$this->irc->spart($ex[1], $ex[2]);
+						break;
+					case 'oper':
+						$this->irc->soper($ex[1], $ex[2]);
+						break;
+					case 'mode':
+						$this->irc->smode($ex[1], $ex[2]);
+						break;
+					case 'topic':
+						$this->irc->stopic($ex[1], $msg);
+						break;
+					case 'notice':
+						$this->irc->snotice($ex[1], $msg);
+						break;
+					case 'names':
+						$this->irc->snames($ex[1]);
+						break;
+					case 'kick':
+						$this->irc->skick($ex[1], $ex[2], $msgh);
+						break;
+					case 'op':
+						$this->irc->smode($ex[1], "+o ".$ex[2]);
+						break;
+					case 'deop':
+						$this->irc->smode($ex[1], "-o ".$ex[2]);
+						break;
+					case 'ver':
+						$this->irc->sversion($ex[1]);
+						break;
+					case 'me':
+						$this->irc->saction($msgf);
+						break;
+					case 'quote':
+					case 'raw':
+						$this->irc->sendline($msgf);
+						break;
+					case 'say':
+						$this->output->addtoircout($this->irc->getuser().trim($input)."\n");
+						$this->irc->say($input);
+						break;
+					case 'exec':
+						if($ex[1] == '-o')
+						{
+							$exout = explode("\n", trim(`$msg`));
+							foreach($exout as $sayout)
+							{
+								$this->irc->say($sayout);
+							}
+						}
+						else
+						{
+							$this->irc->addout(trim(`$msgf`));
+						}
+						break;
+					case 'setb':
+						$this->output->addtoircout("setting ".$ex[1]." to ".(int)trim($msg)."\n");
+						$this->irc->set($ex[1], (int)trim($msg));
+						break;
+					case 'privmsg':
+					case 'msg':
+						$this->irc->sprivmsg($ex[1], $msg);
+						break;
+					default:
+						$this->output->addtoircout('warning: unknow command ['.$cmd."], sending raw to server\n");
+						$this->irc->sendline($cmd." ".$msgf);
+						break;
+				}
+			}
+			else
+			{
+				$this->irc->say($input);
+			}
+		}
+	}
 
 	function torc($server, $mode, $nick, $ssl, $port)
 	{	
-		switch($mode)
-		{
-			case 'ncurses':
-				$this->output = new ncurse();
-				break;
-			default:
-				echo "Unsupported.\n";
-				$this->usage();
-			break;
-		}
-
-
+		$this->output = new ncurse();
 		$this->irc = new irc();
 
 		$this->output->addtoircout(IRCC_VER . " - irc client\n");
 
-		$username = 'torc';
+		$this->username = 'torc';
 		if(!empty($_ENV['LOGNAME']))
 		{
-			$username = $_ENV['LOGNAME'];
+			$this->username = $_ENV['LOGNAME'];
 		}
 		elseif(!empty($_ENV['USER']))
 		{
-			$username = $_ENV['USER'];
+			$this->username = $_ENV['USER'];
 		}
 
 		if($nick == -2)
-			$nick = $username;
+			$this->nick = $this->username;
+		else
+			$this->nick = $nick;
 
 		if($server != -2)
 		{
 			$this->output->addtoircout('connecting to ['.$server.'], port '.$port.', ssl mode: '.(int)$ssl."\n");
-			$this->irc->connect($server, $port, $ssl, $username, "torc", "server", "torc - torx irc user", $nick);
+			$this->irc->connect($server, $port, $ssl, $this->username, "torc", "server", "torc - torx irc user", $this->nick);
 		}
 		else
 		{
@@ -140,162 +280,16 @@ class torc
 		$updct = 100;
 		$prct = 0;
 
-		while(true)
+		while (true)
 		{
-			if (($input = $this->output->getuserinput()))
-			{
-				//we have a line of input
-				if(substr($input, 0, 1) == "/")
-				{
-					// Old line parser.
-/*
-					$ex = explode(" ", $input);
-					$cmd = substr($ex[0], 1);
-					$msg = $ex;
-					$msg[0] = "";
-					$msg[1] = "";
-					$msg = trim(implode(" ", $msg));
-					$msgh = $ex;
-					$msgh[0] = "";
-					$msgh[1] = "";
-					$msgh[2] = "";
-					$msgh = trim(implode(" ", $msgh));
-					$msgf = $ex;
-					$msgf[0] = "";
-					$msgf = trim(implode(" ", $msgf));
-					$ex[count($ex)-1] = trim($ex[count($ex)-1]);
+			// XXX we shouldn't have to reset these constantly..
+			$this->output->SetDisplayVar("nick", $this->irc->usernick);
+			$this->output->SetDisplayVar("window", $this->irc->chan);
+			$this->output->setuserinput();
 
-					$this->output->addtoircout($msg . " | " . $msgf . "\n");
-*/
-//					$ex = array_slice(parse_line($input), 1); // the array_slice is to keep backwards compatibility.
+			$this->poll();
 
-
-					// Tear off /
-					$input = substr($input, 1);
-					// This is all ugly, really. Backwards compatibility.
-					$ex = parse_line($input);
-					$cmd = $ex[0];
-					$msg = implode($ex, " ");
-					$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
-
-					switch(strtolower($cmd))
-					{
-						case 'server':
-							if(!empty($ex[2]))
-								$port = (int)$ex[2];
-							else
-								$port = 6667;
-
-							if (empty($ex[3]))
-								$ex[3] = "";
-
-							$this->irc->connect($ex[1], $port, $ex[3], $username, "torc", "server", "torc - torx irc user", $nick);
-							break;
-						case 'connect':
-							if(!empty($ex[2]))
-								$port = (int)$ex[2];
-							else
-								$port = 6667;
-
-							$this->irc->connect($ex[1], $port, $ex[3], $username, "torc", "server", "torc - torx irc user", $nick);
-							break;
-						case 'quit':
-							$this->irc->squit($msgf);
-							$this->output->quit();
-							die();
-							break;
-						case 'join':
-							$this->irc->sjoin($ex[1]);
-							break;
-						case 'nick':
-							$this->irc->snick($ex[1]);
-							break;
-						case 'part':
-							$this->irc->spart($ex[1], $ex[2]);
-							break;
-						case 'oper':
-							$this->irc->soper($ex[1], $ex[2]);
-							break;
-						case 'mode':
-							$this->irc->smode($ex[1], $ex[2]);
-							break;
-						case 'topic':
-							$this->irc->stopic($ex[1], $msg);
-							break;
-						case 'notice':
-							$this->irc->snotice($ex[1], $msg);
-							break;
-						case 'names':
-							$this->irc->snames($ex[1]);
-							break;
-						case 'kick':
-							$this->irc->skick($ex[1], $ex[2], $msgh);
-							break;
-						case 'op':
-							$this->irc->smode($ex[1], "+o ".$ex[2]);
-							break;
-						case 'deop':
-							$this->irc->smode($ex[1], "-o ".$ex[2]);
-							break;
-						case 'ver':
-							$this->irc->sversion($ex[1]);
-							break;
-						case 'me':
-							$this->irc->saction($msgf);
-							break;
-						case 'quote':
-						case 'raw':
-							$this->irc->sendline($msgf);
-							break;
-						case 'say':
-							$this->output->addtoircout($this->irc->getuser().trim($input)."\n");
-							$this->irc->say($input);
-							break;
-						case 'exec':
-							if($ex[1] == '-o')
-							{
-								$exout = explode("\n", trim(`$msg`));
-								foreach($exout as $sayout)
-								{
-									$this->irc->say($sayout);
-								}
-							}
-							else
-							{
-								$this->irc->addout(trim(`$msgf`));
-							}
-							break;
-						case 'setb':
-							$this->output->addtoircout("setting ".$ex[1]." to ".(int)trim($msg)."\n");
-							$this->irc->set($ex[1], (int)trim($msg));
-							break;
-
-						case 'privmsg':
-						case 'msg':
-							$this->irc->sprivmsg($ex[1], $msg);
-							break;
-						default:
-							$this->output->addtoircout('warning: unknow command ['.$cmd."], sending raw to server\n");
-							$this->irc->sendline($cmd." ".$msgf);
-							break;
-					}
-				}
-				else
-				{
-					$this->irc->say($input);
-				}
-			}
-
-			$updct++;
-			if($updct>30)
-			{
-				// XXX we shouldn't have to reset these constantly..
-				$this->output->SetDisplayVar("nick", $this->irc->usernick);
-				$this->output->SetDisplayVar("window", $this->irc->chan);
-				$this->output->setuserinput();
-				$updct = 0;
-			}
-
+			// XXX this needs moving into the new socket polling
 			$prct++;
 			if($prct>3)
 			{
@@ -333,7 +327,7 @@ usage: ircc [options]
 	// error handler function
 	function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
-		echo $errstr . ": " . $errfile . ":" . $errline;
+		file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
 		die();
 		switch ($errno)
 		{
