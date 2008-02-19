@@ -96,6 +96,12 @@ class torc
 	var $irc, $output;
 	var $username, $nick;
 
+	function shutdown($msg = "")
+	{
+		$this->output->quit();
+		$this->irc->squit($msg);
+		die();
+	}
 
 	function poll()
 	{
@@ -159,9 +165,7 @@ class torc
 						$this->irc->connect($ex[1], $port, $ex[3], $this->username, "torc", "server", "torc - torx irc user", $this->nick);
 						break;
 					case 'quit':
-						$this->irc->squit($msgf);
-						$this->output->quit();
-						die();
+						$this->shutdown($msgf);
 						break;
 					case 'join':
 						$this->irc->sjoin($ex[1]);
@@ -309,7 +313,7 @@ class torc
 	function usage()
 	{
 		global $torc_ver;
-		die($torc_ver."
+		this->shutdown($torc_ver."
 
 usage: ircc [options]
   available options:
@@ -324,8 +328,8 @@ usage: ircc [options]
 	// error handler function
 	function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
-		file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
-		die();
+		//file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
+		
 		switch ($errno)
 		{
 			case E_USER_ERROR:
