@@ -290,7 +290,7 @@ class ncurse
 
 		if ($bShow)
 		{
-			$sStatus .= " " . $sActive;
+			$sStatus .= " " . $sActive . "]";
 		}
 
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
