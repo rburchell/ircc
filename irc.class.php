@@ -111,16 +111,7 @@ class irc {
 		}
 		else if($this->ex[1] == 'PRIVMSG')
 		{
-			if($this->ex[2] == $this->usernick)
-			{
-				$this->procuserprivmsg();
-				// detects > :rainman__!~rainman@127.0.0.1 PRIVMSG rian :hello
-			}
-			else
-			{
-				$this->procchanprivmsg();
-				// detects > :rainman__!~rainman@127.0.0.1 PRIVMSG #test :hello
-			}
+			$this->procprivmsg();
 		}
 		else if(((int)$this->ex[1]) != 0)
 		{
@@ -351,28 +342,24 @@ class irc {
 		$this->addout('-'.$this->sender.'-'.$this->ex[1].' '.$mg);
 	}
 
-	function procuserprivmsg(){
-		if($this->msg == chr(1).'VERSION'.chr(1)){
-			$this->addout($this->sender.' requested version from '.$this->ex[2]);
-			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION ircc'.chr(1));
-		} else {
-			$this->addout('('.$this->sender.') '.$this->msg);
+	function procprivmsg()
+	{
+		if ($this->ex[2][0] == "#")
+		{
+			$this->addout('<'.$this->ex[2].'/'.$this->sender.'> '.$this->msg);
 		}
-	}
-
-	function procchanprivmsg(){
-		if($this->msg == chr(1).'VERSION'.chr(1)){
-			$this->addout($this->sender.' requested version from '.$this->ex[2]);
-			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION ircc'.chr(1));
-		} elseif(preg_match('/^'.chr(1).'ACTION(.*?)'.chr(1).'$/i', $this->msg)){
-			$this->addout('*'.$this->sender.'/'.$this->ex[2].' '.substr($this->msg, 8, strlen($this->msg)-9).'*');
-		} else {
-			if($this->chan == $this->ex[2]){
-				$this->addout('<'.$this->sender.'> '.$this->msg);
-			} else {
-				$this->addout('<'.$this->ex[2].'/'.$this->sender.'> '.$this->msg);
+		else
+		{
+			if (preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg))
+			{
+				$this->addout('CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
+			}
+			else
+			{
+				$this->addout('('.$this->sender.') '.$this->msg);
 			}
 		}
+
 	}
 
 	function procnotice()
