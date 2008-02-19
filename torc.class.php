@@ -213,7 +213,10 @@ class torc {
 
 			$updct++;
 			if($updct>30){
-				$this->output->setuserinput($this->irc->usernick, $this->irc->chan);
+				// XXX we shouldn't have to reset these constantly..
+				$this->output->SetDisplayVar("nick", $this->irc->usernick);
+				$this->output->SetDisplayVar("window", $this->irc->chan);
+				$this->output->setuserinput();
 				$updct = 0;
 
 			}

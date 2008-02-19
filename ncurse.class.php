@@ -28,6 +28,7 @@ class ncurse
 	var $sendhispt;
 	var $sendhislu;
 	var $scrollfd = 0;
+	var $aDisplayVars = array();		// This contains information (like name etc) that are used when painting the GUI
 
 	function ncurse()
 	{
@@ -192,14 +193,19 @@ class ncurse
 			}
 		}
 	}
+	
+	function SetDisplayVar($sKey, $sVal)
+	{
+		$this->aDisplayVars[$sKey] = $sVal;
+	}
 
-	function setuserinput($user, $chan)
+	function setuserinput()
 	{
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 0, 0, date("[H:i:s] ") . "[" . $user. "]");
+		ncurses_mvwaddstr($this->userinputw, 0, 0, date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]");
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $chan . "] " . $this->userinputt.'_');
+		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->aDisplayVars['window'] . "] " . $this->userinputt.'_');
 		ncurses_wrefresh($this->userinputw);
 	}
 
