@@ -115,10 +115,10 @@ class ncurse
 
 		while(stream_select($read, $write, $except, 0, 80000))
 		{
-			// XXX: fgetc? what crack smoker wrote this. try read a full buf, not one char at a time..
-			$c = fgetc($this->stdin);
+			//$c = fgetc($this->stdin);
+			$c = ncurses_getch();
 
-			if ($c == chr(13))
+			if ($c == 13) // Constant would be nice.
 			{
 				$usrp = $this->userinputt;
 				$this->sendhis[] = $usrp;
@@ -128,16 +128,30 @@ class ncurse
 				$this->sendhislu = true;
 				return $usrp;
 			}
-			elseif($c == chr(0x7F) || $c == chr(0x08))
+			elseif($c == NCURSES_KEY_BACKSPACE)
 			{
 				$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
 				$this->setuserinput();
 				return false;
 			}
-/*
-No clue what this is, but it smells like crack
-			elseif($c == chr(0x1B))
+			elseif ($c == NCURSES_KEY_NPAGE)
 			{
+				$this->scrollfd = $this->scrollfd - $this->lines;
+				if($this->scrollfd < 0)
+					$this->scrollfd = 0;
+				$this->buildircout($this->scrollfd);
+			}
+			elseif ($c == NCURSES_KEY_PPAGE)
+			{
+				$ex = explode("\n", $this->ircout_content);
+				$this->scrollfd = $this->scrollfd + $this->lines;
+				if ($this->scrollfd > count($ex))
+					$this->scrollfd = count($ex);
+				$this->buildircout($this->scrollfd);
+			}
+/*			elseif($c == chr(0x1B))
+			{
+				// This is all for pageup/down etc. It's also crack.
 				$read = array($this->stdin);
 				$write = $except = NULL;
 				if(stream_select($read, $write, $except, 0, 80000))
@@ -145,11 +159,14 @@ No clue what this is, but it smells like crack
 					$c = fgetc($this->stdin);
 					if($c == chr(0x5B))
 					{
-						if(stream_select($read = array($this->stdin), $write = NULL, $except = NULL, 0, 80000))
+						$read = array($this->stdin);
+						$write = $except = NULL;
+						if(stream_select($read, $write, $except, 0, 80000))
 						{
 							$c = fgetc($this->stdin);
 							$this->addtoircout("TORX: ".ord($c)."\n");
-							switch($c){
+							switch($c)
+							{
 							case chr(0x41):
 								if($this->sendhispt >= 0)
 								{
@@ -182,20 +199,17 @@ No clue what this is, but it smells like crack
 								fgetc($this->stdin);
 								break;
 
-							case chr(0x36);
-								$this->scrollfd = $this->scrollfd-$this->lines;
-								if($this->scrollfd < 0)
-									$this->scrollfd = 0;
-								$this->buildircout($this->scrollfd);
+							case chr(0x53); // 36
+
 
 							}
 						}
 					}
 				}
-			}
-*/			else
+			}*/
+			else
 			{
-				$this->userinputt .= $c;
+				$this->userinputt .= chr($c);
 				$this->setuserinput();
 				return false;
 			}
