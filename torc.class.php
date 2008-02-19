@@ -12,6 +12,8 @@
  * (at your option) any later version.
  */
 
+set_error_handler(array("torc", "ErrorHandler"));
+date_default_timezone_set("UTC"); // XXX guess the tz?
 set_time_limit(0);
 error_reporting(0);
 ob_implicit_flush();
@@ -92,7 +94,8 @@ class torc
 					$msgf = trim(implode(" ", $msgf));
 					$ex[count($ex)-1] = trim($ex[count($ex)-1]);
 
-					switch(strtolower($cmd)){
+					switch(strtolower($cmd))
+					{
 						case 'server':
 							if(!empty($ex[2]))
 								$port = (int)$ex[2];
@@ -112,6 +115,7 @@ class torc
 						case 'quit':
 							$this->irc->squit($msgf);
 							$this->output->quit();
+							die();
 							break;
 						case 'join':
 							$this->irc->sjoin($ex[1]);
@@ -231,12 +235,41 @@ class torc
 
 usage: ircc [options]
   available options:
-    -c kork            connect to server kork
+    -c kork        connect to server kork
     -p 123             port to connect to
     -s                 enable ssl connection
     -n torx            use torx as nick
 
 ");
+	}
+
+	// error handler function
+	function ErrorHandler($errno, $errstr, $errfile, $errline)
+	{
+		echo $errstr . ": " . $errfile . ":" . $errline;
+		die();
+		switch ($errno)
+		{
+			case E_USER_ERROR:
+				$this->output->addtoircout("ERROR: [$errno] $errstr<br />\n
+											Fatal error on line $errline in file $errfile\n
+											PHP " . PHP_VERSION . " (" . PHP_OS . ")\n
+											Aborting...\n");
+				exit(1);
+				break;
+			case E_USER_WARNING:
+				$this->output->addtoircout("WARNING: [$errno] $errstr\n");
+				break;
+			case E_USER_NOTICE:
+				$this->output->addtoircout("NOTICE: [$errno] $errstr\n");
+				break;
+			default:
+				$this->output->addtoircout("Unknown error type: [$errno] $errstr\n");
+				break;
+		}
+
+		/* Don't execute PHP internal error handler */
+		return true;
 	}
 }
 

@@ -111,7 +111,9 @@ class ncurse
 
 	function getuserinput()
 	{
-		while(stream_select($read = array($this->stdin), $write = NULL, $except = NULL, 0)){
+		$read = array($this->stdin);
+		$write = $except = NULL;
+		while(stream_select($read, $write, $except, 0)){
 			$c = fgetc($this->stdin);
 
 			if ($c == chr(13))
