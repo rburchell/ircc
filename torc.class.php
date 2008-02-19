@@ -123,6 +123,7 @@ class torc
 			else
 			{
 				// irc callback, shouldn't be called yet. ignore event.
+				$this->irc->procline();
 			}
 		}
 	}
@@ -287,24 +288,20 @@ class torc
 			$this->output->SetDisplayVar("window", $this->irc->chan);
 			$this->output->setuserinput();
 
+			// poll() may hang a while until activity on stdin or IRC
 			$this->poll();
 
-			// XXX this needs moving into the new socket polling
-			$prct++;
-			if($prct>3)
-			{
-				if($this->irc->sp)
-					$this->irc->procline();
+			// XXX buffers need to be seperate from IRC
+			$out = explode("\n", $this->irc->getout());
 
-				$out = explode("\n", $this->irc->getout());
-				foreach($out as $send)
-				{
-					$t = trim($send);
-					if(!empty($t))
-						$this->output->addtoircout($send."\n");
-					unset($t);
-				}
-				$prct = 0;
+			foreach($out as $send)
+			{
+				$t = trim($send);
+
+				if(!empty($t))
+					$this->output->addtoircout($send."\n");
+
+				unset($t);
 			}
 		}
 	}

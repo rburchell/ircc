@@ -30,19 +30,19 @@
 
 class irc {
 	var $sp; 						// the socket file pointer
-	var $output;		// everything that is ready to be sent to whoever called us
-	var $usernick;			// the nick of the user
+	var $output;					// everything that is ready to be sent to whoever called us
+	var $usernick;					// the nick of the user
 	var $chan;
 
-	var $line; 					// the line we read from the irc input
-	var $sender;				// the nick that sent this message
-											//		will be messed up if it's not a normal message but then it's not used
+	var $line; 						// the line we read from the irc input
+	var $sender;					// the nick that sent this message
+									//		will be messed up if it's not a normal message but then it's not used
 	var $ex;						// the explode(' ', $line), we use this a lot so it's an attribute
 	var $msg;						// this is everything after the : (reread each line)
-	var $autonick;			// if this is true we auto change nicks
-	var $prevnick;			// the previus nick
+	var $autonick;					// if this is true we auto change nicks
+	var $prevnick;					// the previus nick
 
-	var $uname;					// output from `uname`
+	var $uname;						// output from `uname`
 	
 	var $torc_ver;
 
@@ -110,17 +110,12 @@ class irc {
 	// note that this function will hang the script while nothing is recieved
 	// so users cannot send something, i hope to solve that in the ncurses interface
 	// for bots this shouldn't be much of a problem
-	function procline () {		// this function processes a line
-		$read = array($this->sp);
-		$write = $execpt = NULL;
+	function procline ()
+	{
+		$this->line = fgets($this->sp);		// this should ONLY be called by procline()	
 
-		if(!stream_select($read, $write, $except, 0, 80000))
-			return 0; // this prevents a lockup because of socket blocking
-
-		$this->getline();		// it would be useful to start out on a new line.. :]
-
-		if(substr($this->line, -1) != "\n"){
-			//$this->addout("Warning: something went wrong here, line does not end in \\n, line: [".$this->line."], ignoring it");
+		if(substr($this->line, -1) != "\n")
+		{
 			return 1;
 		}
 
@@ -443,10 +438,6 @@ class irc {
 
 	function procservernotice(){
 		$this->addout('NOTICE '.$this->msg);
-	}
-
-	function getline(){						// very simple function to avoid that everyone reads lines and they get lost
-		$this->line = fgets($this->sp);		// this should ONLY be called by procline()
 	}
 
 	function addout($addtoout){		// adds a string to the output
