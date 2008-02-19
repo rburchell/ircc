@@ -171,9 +171,11 @@ class torc
 
 					// Tear off /
 					$input = substr($input, 1);
+					// This is all ugly, really. Backwards compatibility.
 					$ex = parse_line($input);
 					$cmd = $ex[0];
 					$msg = implode($ex, " ");
+					$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
 
 					switch(strtolower($cmd))
 					{
