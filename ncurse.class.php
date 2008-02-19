@@ -134,7 +134,9 @@ class ncurse
 			}
 			elseif($c == chr(0x1B))
 			{
-				if(stream_select($read = array($this->stdin), $write = NULL, $except = NULL, 0))
+				$read = array($this->stdin);
+				$write = $except = NULL;
+				if(stream_select($read, $write, $except, 0))
 				{
 					$c = fgetc($this->stdin);
 					if($c == chr(0x5B))

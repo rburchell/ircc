@@ -102,6 +102,9 @@ class torc
 							else
 								$port = 6667;
 
+							if (empty($ex[3]))
+								$ex[3] = "";
+
 							$this->irc->connect($ex[1], $port, $ex[3], $username, "torc", "server", "torc - torx irc user", $nick);
 							break;
 						case 'connect':

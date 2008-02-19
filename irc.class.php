@@ -112,7 +112,10 @@ class irc {
 	// so users cannot send something, i hope to solve that in the ncurses interface
 	// for bots this shouldn't be much of a problem
 	function procline () {		// this function processes a line
-		if(!stream_select($read = array($this->sp), $write = NULL, $except = NULL, 0))
+		$read = array($this->sp);
+		$write = $execpt = NULL;
+
+		if(!stream_select($read, $write, $except, 0))
 			return 0; // this prevents a lockup because of socket blocking
 
 		$this->getline();		// it would be useful to start out on a new line.. :]
