@@ -88,6 +88,17 @@ function parse_line($sLine)
 		}
 	}
 
+	// Little hack to stop PHP dying if it encounters a null param.. dirty, but better than hacking fixes in for this 
+	// everywhere. Such are the pitfalls of E_NOTICE.
+	//for ($i = 0; $i < 40; $i++)
+	//{
+	//	if (!isset($aRet[$i]))
+	//		$aRet[$i] = "";
+	//}
+	//
+	// Back this out. It causes problems with IRC processing (picking last param for NOTICE etc), and isn't optimal.
+	// This will need more thought.
+
 	return $aRet;
 }
 
@@ -128,7 +139,7 @@ class torc
 			}
 			else
 			{
-				// irc callback, shouldn't be called yet. ignore event.
+				// irc callback
 				$this->irc->procline();
 			}
 		}
@@ -328,7 +339,8 @@ usage: ircc [options]
 	// error handler function
 	function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
-		//file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
+		file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
+		die();
 		
 		switch ($errno)
 		{

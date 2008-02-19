@@ -1,32 +1,15 @@
 <?php
-
-/*---------------------------------------------------------
-		Vote torc! Vote insanity!
-
-		torc - torx irc client
-		Copyright (C) 2003 rainman <rainman@darkwired.org>
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-		Class functions:
-		- create an IRC client->server connection
-		- provide functions for IRC commands
-		- provide processing of IRC incoming traffic
-		All as described in RFC 1459
-
----------------------------------------------------------*/
+/*
+ * ircc - a handy, portable console irc client
+ *
+ * Copyright (C) 2008 Robin Burchell <w00t@inspircd.org>
+ * Copyright (C) 2003 rainman <rainman@darkwired.org>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
 
 class irc {
 	var $sp; 						// the socket file pointer
@@ -42,15 +25,10 @@ class irc {
 	var $autonick;					// if this is true we auto change nicks
 	var $prevnick;					// the previus nick
 
-	var $uname;						// output from `uname`
-	
-	var $torc_ver;
-
 	var $sets, $chans = array();
 
-	function irc(){
-		global $torc_ver;
-		$this->torc_ver = $torc_ver;
+	function irc()
+	{
 	}
 
 	function connect(
@@ -66,8 +44,6 @@ class irc {
 	) {
 		$this->autonick = 1;
 		
-		$this->uname = trim(`uname -srm`);
-
 		$this->sets = array();
 		$this->sets['timestamp'] = true;
 
@@ -244,7 +220,7 @@ class irc {
 		$this->sendline('MODE '.trim($target).' '.trim($mode));
 	}
 
-	function spart($chan, $reason = 'Vote torc! Vote insanity!'){
+	function spart($chan, $reason = 'Parting'){
 		if(empty($chan))
 			$chan = $this->chan;
 		$this->sendline('PART '.trim($chan).' :'.trim($reason));
@@ -279,7 +255,7 @@ class irc {
 	function squit($reason){
 		$reasont = trim($reason);
 		if(empty($reason))
-			$reason = 'Vote torc! Vote insanity!';
+			$reason = 'Leaving';
 		$this->sendline('QUIT :'.trim($reason));
 	}
 
@@ -403,7 +379,7 @@ class irc {
 	function procuserprivmsg(){
 		if($this->msg == chr(1).'VERSION'.chr(1)){
 			$this->addout($this->sender.' requested version from '.$this->ex[2]);
-			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION torc - torx irc '.$this->torc_ver.': '.$this->uname.' : torc.sf.net : Vote torc! Vote insanity!'.chr(1));
+			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION ircc'.chr(1));
 		} else {
 			$this->addout('('.$this->sender.') '.$this->msg);
 		}
@@ -412,7 +388,7 @@ class irc {
 	function procchanprivmsg(){
 		if($this->msg == chr(1).'VERSION'.chr(1)){
 			$this->addout($this->sender.' requested version from '.$this->ex[2]);
-			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION torc - torx irc '.$this->torc_ver.': '.$this->uname.' : torc.sf.net : Vote torc! Vote insanity!'.chr(1));
+			$this->sendline('NOTICE '.$this->sender.' :'.chr(1).'VERSION ircc'.chr(1));
 		} elseif(preg_match('/^'.chr(1).'ACTION(.*?)'.chr(1).'$/i', $this->msg)){
 			$this->addout('*'.$this->sender.'/'.$this->ex[2].' '.substr($this->msg, 8, strlen($this->msg)-9).'*');
 		} else {
