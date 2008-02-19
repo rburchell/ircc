@@ -104,85 +104,59 @@ class irc {
 		$this->sender = explode("!", $this->ex[0]);
 		$this->sender = $this->sender[0];
 
-/*
-		$this->line = trim($this->line);
 
-		$this->msg = substr(strstr(substr($this->line, 1), ':'), 1);
-
-		// there are lots of different messages we can get
-		// we'll have to process all of them
-		// i'll add an example line of what it detects
-
-		$this->ex = explode(' ', $this->line);
-
-		$this->sender = explode('!', $this->ex[0]);
-		$this->sender = substr($this->sender[0], 1);
-*/
-
-		if($this->ex[0] == 'NOTICE' || ($this->ex[1] == 'NOTICE' && !preg_match("/@/i", $this->ex[0])))
-			$this->procservernotice();
-		// detects > NOTICE AUTH :*** Checking Ident
-		// and > :omega.rizenet.org NOTICE AUTH :*** Checking ident...
-
-
-		if($this->ex[1] == 'NOTICE' && preg_match("/@/i", $this->ex[0])){
-			if($this->ex[2] == $this->usernick){
-				$this->procusernotice();
-				// detects > :rainman__!~rainman@127.0.0.1 NOTICE rian :hello
-			} else {
-				$this->procchannotice();
-				// detects > :rainman__!~rainman@127.0.0.1 NOTICE #test :hello
-			}
+		if($this->ex[1] == 'NOTICE')
+		{
+			$this->procnotice();
 		}
-
-		if($this->ex[1] == 'PRIVMSG'){
-			if($this->ex[2] == $this->usernick){
+		else if($this->ex[1] == 'PRIVMSG')
+		{
+			if($this->ex[2] == $this->usernick)
+			{
 				$this->procuserprivmsg();
 				// detects > :rainman__!~rainman@127.0.0.1 PRIVMSG rian :hello
-			} else {
+			}
+			else
+			{
 				$this->procchanprivmsg();
 				// detects > :rainman__!~rainman@127.0.0.1 PRIVMSG #test :hello
 			}
 		}
-
-		if(((int)$this->ex[1]) != 0)
-			$this->procservermsg();
-		// detects > :Darkwired 375 rian :- Darkwired Message of the Day -
-		// and messages with other numbers
-
-		if($this->ex[1] == 'MODE'){
-			if($this->ex[2] == $this->usernick){
-				$this->procusermode();
+		else if(((int)$this->ex[1]) != 0)
+		{
+			// detects > :Darkwired 375 rian :- Darkwired Message of the Day -
+			// and messages with other numbers
+			$this->procnumeric();
+		}
+		else if($this->ex[1] == 'MODE')
+		{
+			if($this->ex[2] == $this->usernick)
+			{
 				// detects > :rian MODE rian :+i
-			} else {
-				$this->procchanmode();
+				$this->procusermode();
+			}
+			else
+			{
 				// detects > :rainman__!~rainman@127.0.0.1 MODE #test +o rian
 				// and > :Darkwired MODE #test2 +nt
+				$this->procchanmode();
 			}
 		}
-
-		if($this->ex[1] == 'JOIN')
+		else if($this->ex[1] == 'JOIN')
 			$this->procchanjoin();
-
-		if($this->ex[1] == 'PART')
+		else if($this->ex[1] == 'PART')
 			$this->procchanpart();
-
-		if($this->ex[1] == 'KICK')
+		else if($this->ex[1] == 'KICK')
 			$this->procchankick();
-
-		if($this->ex[1] == 'QUIT')
+		else if($this->ex[1] == 'QUIT')
 			$this->procquit();
-
-		if($this->ex[1] == 'NICK')
+		else if($this->ex[1] == 'NICK')
 			$this->procnick();
-
-		if($this->ex[0] == 'PING')
+		else if($this->ex[0] == 'PING')
 			$this->procping();
-
-		if($this->ex[0] == 'PONG')
+		else if($this->ex[0] == 'PONG')
 			$this->procpong();
-
-		if($this->ex[1] == 'TOPIC')
+		else if($this->ex[1] == 'TOPIC')
 			$this->proctopic();
 
 		return 0;
@@ -346,7 +320,8 @@ class irc {
 		$this->addout('usermode '.$this->ex[2].' '.$this->msg.' by '.$this->sender);
 	}
 
-	function procservermsg(){
+	function procnumeric()
+	{
 		//we can't use $this->msg here, it can't handle :Darkwired 254 rain- 2 :channels formed
 		$ar = $this->ex;
 		$ar[0] = '';
@@ -373,7 +348,7 @@ class irc {
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
 
-		$this->addout('--'.$this->sender.'-'.$this->ex[1].' '.$mg);
+		$this->addout('-'.$this->sender.'-'.$this->ex[1].' '.$mg);
 	}
 
 	function procuserprivmsg(){
@@ -400,20 +375,23 @@ class irc {
 		}
 	}
 
-	function procusernotice(){
-		if(preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg)){
-			$this->addout('CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
-		} else {
-			$this->addout('-'.$this->sender.'- '.$this->msg);
+	function procnotice()
+	{
+		if ($this->ex[2][0] == "#")
+		{
+			$this->addout('-'.$this->ex[2].'/'.$this->sender.'- '.$this->msg);
 		}
-	}
-
-	function procchannotice(){
-		$this->addout('-'.$this->ex[2].'/'.$this->sender.'- '.$this->msg);
-	}
-
-	function procservernotice(){
-		$this->addout('NOTICE '.$this->msg);
+		else
+		{
+			if (preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg))
+			{
+				$this->addout('CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
+			}
+			else
+			{
+				$this->addout('-'.$this->sender.'- '.$this->msg);
+			}
+		}
 	}
 
 	function addout($addtoout){		// adds a string to the output
