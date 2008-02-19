@@ -1,33 +1,17 @@
 #!/usr/local/bin/php
 <?php
+/*
+ * ircc - a handy, portable console irc client
+ *
+ * Copyright (C) 2008 Robin Burchell <w00t@inspircd.org>
+ * Copyright (C) 2003 rainman <rainman@darkwired.org>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
 
-/*---------------------------------------------------------
-		Vote torc! Vote insanity!
-
-		torc - torx irc client
-		Copyright (C) 2003 rainman <rainman@darkwired.org>
-
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-		Class functions:
-			- provide simple access to an ncurses gui
-
----------------------------------------------------------*/
-
-
-//argument handling at end of file
 set_time_limit(0);
 error_reporting(0);
 ob_implicit_flush();
@@ -256,24 +240,14 @@ class torc {
 		global $torc_ver;
 		die("
 ".$torc_ver."
-torx irc client by rainman <rainman@darkwired.org>
+ircc
 
-license: GNU GPL
-
-thanks to dodo
-greetz to #darkwired
-
-url: https://www.darkwired.org
-
-
-usage: torc [options]
+usage: ircc [options]
   available options:
     -c kork            connect to server kork
     -p 123             port to connect to
     -s                 enable ssl connection
     -n torx            use torx as nick
-    -m term|ncurses    use ncurses or term(experimental) for output
-
 
 ");
 	}
