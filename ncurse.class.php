@@ -35,6 +35,9 @@ class ncurse
 
 		$this->ncursesess = ncurses_init();
 		ncurses_start_color();
+		ncurses_init_pair(1,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
+		ncurses_init_pair(2,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
+
 		ncurses_curs_set(0);
 
 		$this->mainwin = ncurses_newwin(0, 0, 0, 0);
@@ -42,13 +45,16 @@ class ncurse
 		ncurses_getmaxyx(&$this->mainwin, $this->lines, $this->columns);
 		
 		// Generate a blank line so we can write over the output
-		for($x = 0; $x < $this->columns - 1; $x++)
+		for ($x = 0; $x < $this->columns; $x++)
 		{
 			$this->cl .= ' ';
 		}
 
 		$this->ircoutput = ncurses_newwin($this->lines-2, $this->columns, 0, 0);
 		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
+
+		ncurses_wcolor_set($this->ircoutput, 1);
+		ncurses_wcolor_set($this->userinputw, 2);
 
 		ncurses_refresh();
 		ncurses_wrefresh($this->ircoutput);
