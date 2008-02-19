@@ -21,7 +21,8 @@ define('IRCC_VER', 'ircc-0.01');
 include "ncurse.class.php";
 include "irc.class.php";
 
-class torc {
+class torc
+{
 	var $irc, $output;
 
 	function torc($server, $mode, $nick, $ssl, $port)
@@ -55,10 +56,13 @@ class torc {
 		if($nick == -2)
 			$nick = $username;
 
-		if($server != -2){
+		if($server != -2)
+		{
 			$this->output->addtoircout('connecting to ['.$server.'], port '.$port.', ssl mode: '.(int)$ssl."\n");
 			$this->irc->connect($server, $port, $ssl, $username, "torc", "server", "torc - torx irc user", $nick);
-		} else {
+		}
+		else
+		{
 			$this->output->addtoircout("use the /SERVER command to connect to a server\n");
 			$this->output->addtoircout("/QUIT to quit\n\n\n");
 		}
@@ -67,10 +71,11 @@ class torc {
 		$prct = 0;
 		while(true){
 			usleep(15000);
-			if (($input = $this->output->getuserinput())){
+			if (($input = $this->output->getuserinput()))
+			{
 				//we have a line of input
-				if(substr($input, 0, 1) == "/"){
-
+				if(substr($input, 0, 1) == "/")
+				{
 					$ex = explode(" ", $input);
 					$cmd = substr($ex[0], 1);
 					$msg = $ex;
@@ -89,141 +94,126 @@ class torc {
 
 					switch(strtolower($cmd)){
 						case 'server':
-							
 							if(!empty($ex[2]))
 								$port = (int)$ex[2];
 							else
 								$port = 6667;
 
 							$this->irc->connect($ex[1], $port, $ex[3], $username, "torc", "server", "torc - torx irc user", $nick);
-						break;
-
+							break;
 						case 'connect':
-							
 							if(!empty($ex[2]))
 								$port = (int)$ex[2];
 							else
 								$port = 6667;
 
 							$this->irc->connect($ex[1], $port, $ex[3], $username, "torc", "server", "torc - torx irc user", $nick);
-						break;
+							break;
 						case 'quit':
 							$this->irc->squit($msgf);
 							$this->output->quit();
-							die("\n\nVote torc! Vote insanity!\n");
-						break;
-
+							break;
 						case 'join':
 							$this->irc->sjoin($ex[1]);
-						break;
-
+							break;
 						case 'nick':
 							$this->irc->snick($ex[1]);
-						break;
-
+							break;
 						case 'part':
 							$this->irc->spart($ex[1], $ex[2]);
-						break;
-
+							break;
 						case 'oper':
 							$this->irc->soper($ex[1], $ex[2]);
-						break;
-
+							break;
 						case 'mode':
 							$this->irc->smode($ex[1], $ex[2]);
-						break;
-
+							break;
 						case 'topic':
 							$this->irc->stopic($ex[1], $msg);
-						break;
-
+							break;
 						case 'notice':
 							$this->irc->snotice($ex[1], $msg);
-						break;
-
+							break;
 						case 'names':
 							$this->irc->snames($ex[1]);
-						break;
-
+							break;
 						case 'kick':
 							$this->irc->skick($ex[1], $ex[2], $msgh);
-						break;
-
+							break;
 						case 'op':
 							$this->irc->smode($ex[1], "+o ".$ex[2]);
-						break;
-
+							break;
 						case 'deop':
 							$this->irc->smode($ex[1], "-o ".$ex[2]);
-						break;
-
+							break;
 						case 'ver':
 							$this->irc->sversion($ex[1]);
-						break;
-
+							break;
 						case 'me':
 							$this->irc->saction($msgf);
-						break;
-
+							break;
 						case 'quote':
 						case 'raw':
 							$this->irc->sendline($msgf);
-						break;
-						
+							break;
 						case 'say':
 							$this->output->addtoircout($this->irc->getuser().trim($input)."\n");
 							$this->irc->say($input);
-						break;
-
+							break;
 						case 'exec':
-							//$this->irc->addout('msg: '.$msg.', msgf: '.$msgf);
-							if($ex[1] == '-o'){
+							if($ex[1] == '-o')
+							{
 								$exout = explode("\n", trim(`$msg`));
-								foreach($exout as $sayout){
+								foreach($exout as $sayout)
+								{
 									$this->irc->say($sayout);
 								}
-							} else {
+							}
+							else
+							{
 								$this->irc->addout(trim(`$msgf`));
 							}
-						break;
-
+							break;
 						case 'setb':
 							$this->output->addtoircout("setting ".$ex[1]." to ".(int)trim($msg)."\n");
 							$this->irc->set($ex[1], (int)trim($msg));
-						break;
+							break;
 
 						case 'privmsg':
 						case 'msg':
 							$this->irc->sprivmsg($ex[1], $msg);
-						break;
-
+							break;
 						default:
 							$this->output->addtoircout('warning: unknow command ['.$cmd."], sending raw to server\n");
 							$this->irc->sendline($cmd." ".$msgf);
-						break;
+							break;
 					}
-				} else {
+				}
+				else
+				{
 					$this->irc->say($input);
 				}
 			}
 
 			$updct++;
-			if($updct>30){
+			if($updct>30)
+			{
 				// XXX we shouldn't have to reset these constantly..
 				$this->output->SetDisplayVar("nick", $this->irc->usernick);
 				$this->output->SetDisplayVar("window", $this->irc->chan);
 				$this->output->setuserinput();
 				$updct = 0;
-
 			}
 
 			$prct++;
-			if($prct>3){
+			if($prct>3)
+			{
 				if($this->irc->sp)
 					$this->irc->procline();
 
 				$out = explode("\n", $this->irc->getout());
-				foreach($out as $send){
+				foreach($out as $send)
+				{
 					$t = trim($send);
 					if(!empty($t))
 						$this->output->addtoircout($send."\n");
@@ -234,12 +224,10 @@ class torc {
 		}
 	}
 	
-	
-	function usage(){
+	function usage()
+	{
 		global $torc_ver;
-		die("
-".$torc_ver."
-ircc
+		die($torc_ver."
 
 usage: ircc [options]
   available options:
@@ -263,33 +251,29 @@ $server = -2;
 $argv = $_SERVER['argv'];
 $argc = $_SERVER['argc'];
 
-for($x = 1; $x < $argc; $x++){
-	switch ($argv[$x]){
-
+for($x = 1; $x < $argc; $x++)
+{
+	switch ($argv[$x])
+	{
 		case '-n':
 			$nick = $argv[$x+1];
 			$x++;
-		break;
-
+			break;
 		case '-c':
 			$server = $argv[$x+1];
 			$x++;
-		break;
-
+			break;
 		case '-s':
 			$ssl = true;
-		break;
-
+			break;
 		case '-p':
 			$port = (int)$argv[$x+1];
 			$x++;
-		break;
-
+			break;
 		case '-m':
 			$mode = $argv[$x+1];
 			$x++;
-		break;
-
+			break;
 		default:
 			torc::usage();
 		break;
