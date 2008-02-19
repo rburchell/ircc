@@ -125,6 +125,16 @@ class irc {
 			return 1;
 		}
 
+		// This is all ugly, really. Backwards compatibility.
+		$this->line = trim($this->line);
+		$this->ex = parse_line($this->line);
+		//$this->msg = implode(array_slice($this->ex, 1), " ");
+		$this->msg = $this->ex[count($this->ex) - 1];
+		//msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
+		$this->sender = explode("!", $this->ex[0]);
+		$this->sender = $this->sender[0];
+
+/*
 		$this->line = trim($this->line);
 
 		$this->msg = substr(strstr(substr($this->line, 1), ':'), 1);
@@ -137,6 +147,7 @@ class irc {
 
 		$this->sender = explode('!', $this->ex[0]);
 		$this->sender = substr($this->sender[0], 1);
+*/
 
 		if($this->ex[0] == 'NOTICE' || ($this->ex[1] == 'NOTICE' && !preg_match("/@/i", $this->ex[0])))
 			$this->procservernotice();
