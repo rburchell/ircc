@@ -1,4 +1,3 @@
-
 <?php
 /*
  * ircc - a handy, portable console irc client
@@ -113,7 +112,8 @@ class ncurse
 	{
 		$read = array($this->stdin);
 		$write = $except = NULL;
-		while(stream_select($read, $write, $except, 0)){
+		while(stream_select($read, $write, $except, 0, 80000))
+		{
 			$c = fgetc($this->stdin);
 
 			if ($c == chr(13))
@@ -136,12 +136,12 @@ class ncurse
 			{
 				$read = array($this->stdin);
 				$write = $except = NULL;
-				if(stream_select($read, $write, $except, 0))
+				if(stream_select($read, $write, $except, 0, 80000))
 				{
 					$c = fgetc($this->stdin);
 					if($c == chr(0x5B))
 					{
-						if(stream_select($read = array($this->stdin), $write = NULL, $except = NULL, 0))
+						if(stream_select($read = array($this->stdin), $write = NULL, $except = NULL, 0, 80000))
 						{
 							$c = fgetc($this->stdin);
 							$this->addtoircout("TORX: ".ord($c)."\n");

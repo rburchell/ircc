@@ -139,8 +139,9 @@ class torc
 
 		$updct = 100;
 		$prct = 0;
-		while(true){
-			usleep(15000);
+
+		while(true)
+		{
 			if (($input = $this->output->getuserinput()))
 			{
 				//we have a line of input

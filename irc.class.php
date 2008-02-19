@@ -1,4 +1,3 @@
-
 <?php
 
 /*---------------------------------------------------------
@@ -115,7 +114,7 @@ class irc {
 		$read = array($this->sp);
 		$write = $execpt = NULL;
 
-		if(!stream_select($read, $write, $except, 0))
+		if(!stream_select($read, $write, $except, 0, 80000))
 			return 0; // this prevents a lockup because of socket blocking
 
 		$this->getline();		// it would be useful to start out on a new line.. :]
