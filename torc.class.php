@@ -1,7 +1,4 @@
 #!/usr/local/bin/php
-<?php $torc_ver = 'torc-1.3.0';
-error_reporting(0); ?>
-
 <?php
 
 /*---------------------------------------------------------
@@ -31,35 +28,28 @@ error_reporting(0); ?>
 
 
 //argument handling at end of file
-
 set_time_limit(0);
+error_reporting(E_NOTICE);
 ob_implicit_flush();
 
-if(empty($torc_ver))
-	$torc_ver = 'torc-dev';
+
+$torc_ver = 'torc-1.3.0';
 
 include "ncurse.class.php";
-//include "term.class.php";
 include "irc.class.php";
 
 class torc {
 	var $irc, $output;
 
-	function torc($server, $mode, $nick, $ssl, $port) {
-	
-
-
-		switch($mode){
+	function torc($server, $mode, $nick, $ssl, $port)
+	{	
+		switch($mode)
+		{
 			case 'ncurses':
 				$this->output = new ncurse();
-			break;
-
-			case 'term':
-//				$this->output = new term();
-				echo "Unsupported.\n";
-			break;
-
+				break;
 			default:
+				echo "Unsupported.\n";
 				$this->usage();
 			break;
 		}
@@ -67,7 +57,7 @@ class torc {
 
 		$this->irc = new irc();
 
-		$this->output->addtoircout("torc - torx irc client\n");
+		$this->output->addtoircout($torc_ver . " - irc client\n");
 
 		$username = 'torc';
 		if(!empty($_ENV['LOGNAME'])){
