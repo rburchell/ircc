@@ -17,6 +17,8 @@ class Buffer
 	var $buf;
 	var $scroll = 0;
 	var $ncurse;
+	var $active;					// fucking true if there is fucking shit to fucking show in this window.
+
 
 	public function __construct(&$ncurse)
 	{
@@ -131,6 +133,7 @@ class ncurse
 	{
 		file_put_contents("buffer.log", "drawing buffer " . $iBuffer . " with contents " . $this->aBuffers[$iBuffer]->GetBuffer());
 		$this->iCurrentBuffer = $iBuffer;
+		$this->aBuffers[$iBuffer]->active = false;
 		$ex = explode("\n", $this->aBuffers[$iBuffer]->GetBuffer());
 
 		for($x = 0; $x < $this->lines-2; $x++)
@@ -171,6 +174,8 @@ class ncurse
 
 		if ($this->iCurrentBuffer == $iBuffer)
 			$this->DrawBuffer($iBuffer); // force redraw
+		else
+			$this->aBuffers[$iBuffer]->active = true;
 	}
 
 	function getuserinput()
@@ -262,8 +267,34 @@ class ncurse
 
 	function setuserinput()
 	{
+		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]";
+
+		$bShow = false;
+		$sActive = "[Act: ";
+
+		foreach ($this->aBuffers as $iBuffer => $oBuffer)
+		{
+			if ($oBuffer->active == true)
+			{
+				if ($bShow == false)
+				{
+					$bShow = true;
+					$sActive .= $iBuffer;
+				}
+				else
+				{
+					$sActive .= ", " . $iBuffer;
+				}
+			}
+		}
+
+		if ($bShow)
+		{
+			$sStatus .= " " . $sActive;
+		}
+
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 0, 0, date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]");
+		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->aDisplayVars['window'] . "] " . $this->userinputt.'_');
