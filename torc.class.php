@@ -313,7 +313,7 @@ class torc
 	function usage()
 	{
 		global $torc_ver;
-		this->shutdown($torc_ver."
+		$this->shutdown($torc_ver."
 
 usage: ircc [options]
   available options:
