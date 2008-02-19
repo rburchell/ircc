@@ -29,7 +29,7 @@
 
 //argument handling at end of file
 set_time_limit(0);
-error_reporting(E_NOTICE);
+error_reporting(0);
 ob_implicit_flush();
 
 
