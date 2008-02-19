@@ -19,6 +19,8 @@ error_reporting(E_ALL);
 ob_implicit_flush();
 
 define('IRCC_VER', 'ircc-0.01');
+define('BUFFER_STATUS', 0);
+define('BUFFER_CURRENT', -1);
 
 include "ncurse.class.php";
 include "irc.class.php";
@@ -163,6 +165,9 @@ class torc
 
 				switch(strtolower($cmd))
 				{
+					case 'w':
+						$this->output->DrawBuffer($ex[1]);
+						break;
 					case 'server':
 					case 'connect':
 						if(!empty($ex[2]))
@@ -222,7 +227,7 @@ class torc
 						$this->irc->sendline($msgf);
 						break;
 					case 'say':
-						$this->output->addtoircout($this->irc->getuser().trim($input)."\n");
+						$this->output->Output(BUFFER_STATUS, $this->irc->getuser().trim($input)."\n");
 						$this->irc->say($input);
 						break;
 					case 'exec':
@@ -240,7 +245,7 @@ class torc
 						}
 						break;
 					case 'setb':
-						$this->output->addtoircout("setting ".$ex[1]." to ".(int)trim($msg)."\n");
+						$this->output->Output(BUFFER_STATUS, "setting ".$ex[1]." to ".(int)trim($msg)."\n");
 						$this->irc->set($ex[1], (int)trim($msg));
 						break;
 					case 'privmsg':
@@ -248,7 +253,7 @@ class torc
 						$this->irc->sprivmsg($ex[1], $msg);
 						break;
 					default:
-						$this->output->addtoircout('warning: unknow command ['.$cmd."], sending raw to server\n");
+						$this->output->Output(BUFFER_STATUS, 'warning: unknow command ['.$cmd."], sending raw to server");
 						$this->irc->sendline($cmd." ".$msgf);
 						break;
 				}
@@ -261,11 +266,12 @@ class torc
 	}
 
 	function torc($server, $mode, $nick, $ssl, $port)
-	{	
+	{
 		$this->output = new ncurse();
-		$this->irc = new irc();
+		$this->output->AddBuffer(); // Create status buffer. ALWAYS at position 0.
+		$this->irc = new irc($this);
 
-		$this->output->addtoircout(IRCC_VER . " - irc client\n");
+		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client\n");
 
 		$this->username = 'torc';
 		if(!empty($_ENV['LOGNAME']))
@@ -284,13 +290,13 @@ class torc
 
 		if($server != -2)
 		{
-			$this->output->addtoircout('connecting to ['.$server.'], port '.$port.', ssl mode: '.(int)$ssl."\n");
+			$this->output->Output(BUFFER_STATUS, 'connecting to ['.$server.'], port '.$port.', ssl mode: '.(int)$ssl);
 			$this->irc->connect($server, $port, $ssl, $this->username, "torc", "server", "torc - torx irc user", $this->nick);
 		}
 		else
 		{
-			$this->output->addtoircout("use the /SERVER command to connect to a server\n");
-			$this->output->addtoircout("/QUIT to quit\n\n\n");
+			$this->output->Output(BUFFER_STATUS, "use the /SERVER command to connect to a server");
+			$this->output->Output(BUFFER_STATUS, "/QUIT to quit\n\n\n");
 		}
 
 		$updct = 100;
@@ -306,6 +312,7 @@ class torc
 			// poll() may hang a while until activity on stdin or IRC
 			$this->poll();
 
+/*
 			// XXX buffers need to be seperate from IRC
 			$out = explode("\n", $this->irc->getout());
 
@@ -314,10 +321,11 @@ class torc
 				$t = trim($send);
 
 				if(!empty($t))
-					$this->output->addtoircout($send."\n");
+					$this->output->Output(BUFFER_STATUS, BUFFER_STATUS, , $send."\n");
 
 				unset($t);
 			}
+*/
 		}
 	}
 	
@@ -341,29 +349,6 @@ usage: ircc [options]
 	{
 		file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
 		die();
-		
-		switch ($errno)
-		{
-			case E_USER_ERROR:
-				$this->output->addtoircout("ERROR: [$errno] $errstr<br />\n
-											Fatal error on line $errline in file $errfile\n
-											PHP " . PHP_VERSION . " (" . PHP_OS . ")\n
-											Aborting...\n");
-				exit(1);
-				break;
-			case E_USER_WARNING:
-				$this->output->addtoircout("WARNING: [$errno] $errstr\n");
-				break;
-			case E_USER_NOTICE:
-				$this->output->addtoircout("NOTICE: [$errno] $errstr\n");
-				break;
-			default:
-				$this->output->addtoircout("Unknown error type: [$errno] $errstr\n");
-				break;
-		}
-
-		/* Don't execute PHP internal error handler */
-		return true;
 	}
 }
 

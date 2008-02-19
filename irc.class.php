@@ -27,8 +27,11 @@ class irc {
 
 	var $sets, $chans = array();
 
-	function irc()
+	var $torc;
+
+	function irc(&$torc)
 	{
+		$this->torc = $torc;
 	}
 
 	function connect(
@@ -56,7 +59,7 @@ class irc {
 		$this->sp = fsockopen($cntserver, $port, $errno, $errstr, 10);
 
 		if(!$this->sp){
-			$this->addout('Connect error: '.$errno.' - '.$errstr);
+			$this->torc->output->Output(BUFFER_CURRENT, 'Connect error: '.$errno.' - '.$errstr);
 			return 1;		// in case of error: output the error and exit this function
 		}
 
@@ -164,13 +167,9 @@ class irc {
 	function sjoin($chan){
 		$this->sendline('JOIN '.trim($chan));
 		$this->chan = trim($chan);
-		if(in_array(trim($chan),  $this->chans)){
-			for($x = 0; $x < count($this->chans); $x++){
-				if($this->chans[$x] == trim($chan))
-					$this->chans[$x] = '';
-			}
-		}
-		$this->chans[] = trim($chan);
+		$iBuffer = $this->torc->output->AddBuffer();
+		$this->chans[$chan] = $iBuffer;
+		$this->torc->output->DrawBuffer($iBuffer);
 	}
 
 	function soper($name, $pass){
@@ -189,56 +188,39 @@ class irc {
 		if(empty($chan))
 			$chan = $this->chan;
 		$this->sendline('PART '.trim($chan).' :'.trim($reason));
-
-		for($x = 0; $x < count($this->chans); $x++){
-			if($this->chans[$x] == trim($chan))
-				$this->chans[$x] = '';
-		}
-
-		$csl = 0;
-		foreach($this->chans as $fc){
-			if(!empty($fc))
-				$csl++;
-		}
-
-		if($csl > 0){
-			if($chan == $this->chan){
-				for($x = count($this->chans)-1; $x >= 0; $x--){
-					if(!empty($this->chans[$x])){
-						$this->chan = $this->chans[$x];
-						$x = -1;
-					}
-				}
-			}
-
-		} else {
-			$this->chan = '';
-			$this->chans = array();;
-		}
+		$this->torc->output->DeleteBuffer($this->chans[$chan]);
+		unset($this->chans[$chan]);
 	}
 
-	function squit($reason){
+	function squit($reason)
+	{
 		$reasont = trim($reason);
 		if(empty($reason))
 			$reason = 'Leaving';
 		$this->sendline('QUIT :'.trim($reason));
 	}
 
-	function sprivmsg($target, $msg, $disp = true){
+	function sprivmsg($target, $msg, $disp = true)
+	{
 		$this->sendline('PRIVMSG '.trim($target).' :'.trim($msg));
 		if($disp)
-			$this->addout('msg '.$target.' '.$msg);
+			$this->torc->output->Output(BUFFER_CURRENT, 'msg '.$target.' '.$msg);
 	}
 
-	function snotice($target, $msg){
+	function snotice($target, $msg)
+	{
 		$this->sendline('NOTICE '.trim($target).' :'.trim($msg));
-		$this->addout('notice -'.$target.'- '.$msg);
+		$this->torc->output->Output(BUFFER_CURRENT, 'notice -'.$target.'- '.$msg);
 	}
 
-	function stopic($target, $new = ''){
-		if(trim($new) != ''){
+	function stopic($target, $new = '')
+	{
+		if(trim($new) != '')
+		{
 			$this->sendline('TOPIC '.$target.' :'.$new);
-		} else {
+		}
+		else
+		{
 			$this->sendline('TOPIC '.$target);
 		}
 	}
@@ -249,14 +231,14 @@ class irc {
 
 	function say($msg){
 		$this->sprivmsg($this->chan, trim($msg), false);
-		$this->addout('<'.$this->usernick.'> '.$msg);
+		$this->torc->output->Output(BUFFER_CURRENT, '<'.$this->usernick.'> '.$msg);
 	}
 
 	function sversion($target){
 		if(empty($target))
 			$target = $this->chan;
 		$this->sprivmsg($target, chr(1).'VERSION'.chr(1), false);
-		$this->addout('CTCP VERSION '.$target);
+		$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION ' . $target);
 	}
 
 	function set($var, $val){
@@ -265,50 +247,75 @@ class irc {
 
 	function saction($msg){
 		$this->sprivmsg($this->chan, chr(1).'ACTION '.trim($msg).chr(1),false);
-		$this->addout('*'.$this->usernick.'/'.$this->chan.' '.trim($msg).'*');
+		$this->torc->output->Output(BUFFER_CURRENT, '*'.$this->usernick.'/'.$this->chan.' '.trim($msg).'*');
 	}
 
+
+	function GetBufferID($sTarget)
+	{
+		if (isset($this->chans[$sTarget]))
+			return $this->chans[$sTarget];
+
+		return -1;
+	}
 
 	/*-----------------------------------
 	BELOW FUNCTIONS FOR INTERNAL USE ONLY
 	-----------------------------------*/
-	function proctopic(){
-		$this->addout($this->sender.' set topic for '.$this->ex[2].' to '.$this->msg);
+	function proctopic()
+	{
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender.' set topic for '.$this->ex[2].' to '.$this->msg);
 	}
 
-	function procpong(){
+	function procpong()
+	{
 	}
 
-	function procping(){
+	function procping()
+	{
 		$this->sendline('PONG '.$this->ex[1]);
 	}
 
-	function procnick(){
-		$this->addout($this->sender.' is now known as '.substr($this->ex[2], 1));
+	function procnick()
+	{
+		// XXX we need to output this on all buffers, or something.
+		$this->torc->output->Output(BUFFER_CURRENT, $this->sender.' is now known as '.substr($this->ex[2], 1));
 	}
 
-	function procquit(){
-		$this->addout('Quit: '.$this->sender.' ['.$this->msg.']');
+	function procquit()
+	{
+		$this->torc->output->Output(BUFFER_CURRENT, 'Quit: '.$this->sender.' ['.$this->msg.']');
 	}
 
-	function procchankick(){
-		$this->addout($this->ex[3].' was kicked off '.$this->ex[2].' by '.$this->sender.': '.$this->msg);
+	function procchankick()
+	{
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->ex[3].' was kicked off '.$this->ex[2].' by '.$this->sender.': '.$this->msg);
 	}
 
-	function procchanpart(){
-		$this->addout($this->sender.' has left channel '.$this->ex[2].': '.$this->msg);
+	function procchanpart()
+	{
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender.' has left channel '.$this->ex[2].': '.$this->msg);
 	}
 
-	function procchanjoin(){
-		$this->addout($this->sender. ' has joined '.substr($this->ex[2], 1));
+	function procchanjoin()
+	{
+		$iId = $this->GetBufferID($this->ex[2]);
+
+		// If the channel hasn't been created before, do so now.
+		if ($iId == -1)
+		{
+			$iId = $this->torc->output->AddBuffer();
+			$this->torc->output->DrawBuffer($iId);
+		}
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender. ' has joined '.substr($this->ex[2], 1));
 	}
 
 	function procchanmode(){
-		$this->addout('chanmode '.$this->ex[2].' '.$this->ex[3].' '.$this->ex[4].' by '.$this->sender);
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), 'chanmode '.$this->ex[2].' '.$this->ex[3].' '.$this->ex[4].' by '.$this->sender);
 	}
 
 	function procusermode(){
-		$this->addout('usermode '.$this->ex[2].' '.$this->msg.' by '.$this->sender);
+		$this->torc->output->Output(BUFFER_CURRENT, 'usermode '.$this->ex[2].' '.$this->msg.' by '.$this->sender);
 	}
 
 	function procnumeric()
@@ -320,7 +327,9 @@ class irc {
 		$ar[2] = '';
 		$mg = implode(' ', $ar);
 		$mg = trim($mg);
-		if($this->autonick){
+
+		if($this->autonick)
+		{
 			$this->autonick++;
 
 			if($this->autonick > 5)
@@ -329,7 +338,9 @@ class irc {
 			if($this->ex[1] == 437 || $this->ex[1] == 433)
 				$this->snick($this->usernick.'_');
 
-		} else {
+		}
+		else
+		{
 			if($this->ex[1] == 437 || $this->ex[1] == 433)
 				$this->snick($this->prevnick);
 		}
@@ -339,24 +350,24 @@ class irc {
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
 
-		$this->addout('-'.$this->sender . " (" . $this->ex[1] . ")" . '- '.$mg);
+		$this->torc->output->Output(BUFFER_CURRENT, '-'.$this->sender . " (" . $this->ex[1] . ")" . '- '.$mg);
 	}
 
 	function procprivmsg()
 	{
 		if ($this->ex[2][0] == "#")
 		{
-			$this->addout('<'.$this->ex[2].'/'.$this->sender.'> '.$this->msg);
+			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->ex[2].'/'.$this->sender.'> '.$this->msg);
 		}
 		else
 		{
 			if (preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg))
 			{
-				$this->addout('CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
+				$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
 			}
 			else
 			{
-				$this->addout('('.$this->sender.') '.$this->msg);
+				$this->torc->output->Output(BUFFER_CURRENT, '('.$this->sender.') '.$this->msg);
 			}
 		}
 
@@ -366,38 +377,27 @@ class irc {
 	{
 		if ($this->ex[2][0] == "#")
 		{
-			$this->addout('-'.$this->ex[2].'/'.$this->sender.'- '.$this->msg);
+			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '-'.$this->ex[2].'/'.$this->sender.'- '.$this->msg);
 		}
 		else
 		{
 			if (preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg))
 			{
-				$this->addout('CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
+				$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
 			}
 			else
 			{
-				$this->addout('-'.$this->sender.'- '.$this->msg);
+				$this->torc->output->Output(BUFFER_CURRENT, '-'.$this->sender.'- '.$this->msg);
 			}
 		}
 	}
 
-	function addout($addtoout){		// adds a string to the output
-		if($this->sets['timestamp'])
-			$this->output .= date("[H:i] ").$addtoout."\n";
-		else
-			$this->output .= $addtoout."\n";
-	}
-
-
-	function getout(){
-		$out = $this->output;
-		$this->output = '';
-		return $out;
-	}
-
-	function sendline($data){					// sends a line to our irc
-		if(!@fwrite($this->sp, $data."\n")){
-			$this->addout('Warning: error writing ['.$data.']');
+	function sendline($data)
+	{
+		// sends a line to our irc
+		if(!@fwrite($this->sp, $data."\n"))
+		{
+			$this->torc->output->Output(BUFFER_CURRENT, 'Warning: error writing ['.$data.']');
 		}
 	}
 }

@@ -11,6 +11,37 @@
  * (at your option) any later version.
  */
 
+class Buffer
+{
+	var $topic;
+	var $buf;
+	var $scroll = 0;
+	var $ncurse;
+
+	public function __construct(&$ncurse)
+	{
+		$this->ncurse = $ncurse;
+	}
+
+	public function AddToBuffer(&$sBuf)
+	{
+		// XXX indentation should be done on draw, not on buffer add.
+		while (strlen($sBuf) > $this->ncurse->columns - 3)
+		{
+			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
+			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
+		}
+
+
+		$this->buf .= $sBuf . "\n";
+	}
+
+	public function &GetBuffer()
+	{
+		return $this->buf;
+	}
+}
+
 class ncurse
 {
 	var $ncursesess;
@@ -28,6 +59,8 @@ class ncurse
 	var $sendhislu;
 	var $scrollfd = 0;
 	var $aDisplayVars = array();		// This contains information (like name etc) that are used when painting the GUI
+	var $aBuffers = array();			// Numerically indexed array of Buffer instances.
+	var $iCurrentBuffer = 0;
 
 	function ncurse()
 	{
@@ -61,30 +94,36 @@ class ncurse
 		ncurses_wrefresh($this->userinputw);
 	}
 
-
-	function addtoircout($line, $fd = -1)
+	/*
+	 * Creates a new buffer, and returns the index it may be referenced by.
+	 *
+	 */
+	function AddBuffer()
 	{
-		// NEVER CALL THIS FUNCTION WITH INPUT WITH \n's
-		while(strlen($line) > $this->columns-3)
+		for ($i = 0; /* nothing */; $i++)
 		{
-			$this->ircout_content .= substr($line,0, $this->columns-6)."\n";
-			$line = '   '.substr($line, $this->columns-6);
+			if (!isset($this->aBuffers[$i]))
+			{
+				$this->aBuffers[$i] = new Buffer($this);
+				return $i;
+			}
 		}
-
-		$this->ircout_content .= $line;
-
-		if($fd == -1)
-			$this->buildircout($this->scrollfd);	
-		else
-			$this->buildircout($fd);
-
 	}
 
-	function buildircout($fd = 0)
+	function DeleteBuffer($iBuffer)
 	{
-		$fd += 2;
+		$this->aBuffers[$iBuffer] = false;
+		unset($this->aBuffers[$iBuffer]);
+	}
 
-		$ex = explode("\n", $this->ircout_content);
+	/*
+	 * "Switches" to a new buffer specified by unique ID and redraws it.
+	 */
+	function DrawBuffer($iBuffer)
+	{
+		file_put_contents("buffer.log", "drawing buffer " . $iBuffer . " with contents " . $this->aBuffers[$iBuffer]->GetBuffer());
+		$this->iCurrentBuffer = $iBuffer;
+		$ex = explode("\n", $this->aBuffers[$iBuffer]->GetBuffer());
 
 		for($x = 0; $x < $this->lines-2; $x++)
 		{
@@ -93,9 +132,9 @@ class ncurse
 
 		$linetype = NULL;
 		$ll = 0;
-		$linesleft = $this->lines-2;
+		$linesleft = $this->lines - 2;
 
-		for($x = count($ex)-$fd; $x >= 0; $x--)
+		for ($x = count($ex) - $this->aBuffers[$iBuffer]->scroll; $x >= 0; $x--)
 		{
 			if($linesleft == 0)
 			{
@@ -112,6 +151,18 @@ class ncurse
 		}
 
 		ncurses_wrefresh($this->ircoutput);
+	}
+
+	function Output($iBuffer, $sBuf)
+	{
+		if ($iBuffer == -1)
+			$iBuffer = $this->iCurrentBuffer;
+
+		$sBuf = date("[H:i] ") . $sBuf . "\n";
+		$this->aBuffers[$iBuffer]->AddToBuffer($sBuf);
+
+		if ($this->iCurrentBuffer == $iBuffer)
+			$this->DrawBuffer($iBuffer); // force redraw
 	}
 
 	function getuserinput()
