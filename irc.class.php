@@ -339,7 +339,7 @@ class irc {
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
 
-		$this->addout('-'.$this->sender.'-'.$this->ex[1].' '.$mg);
+		$this->addout('-'.$this->sender . " (" . $this->ex[1] . ")" . '- '.$mg);
 	}
 
 	function procprivmsg()
