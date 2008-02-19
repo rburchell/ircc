@@ -23,6 +23,74 @@ define('IRCC_VER', 'ircc-0.01');
 include "ncurse.class.php";
 include "irc.class.php";
 
+/*
+ * Returns an array of:
+ *  prefix
+ *  command
+ *  params
+ * This obeys IRC line format, i.e.
+ *  :w00t PRIVMSG foo :bar moo cow
+ * gives
+ * [0]: w00t
+ * [1]: PRIVMSG
+ * [2]: foo
+ * [3]: bar moo cow
+ *
+ * On the other hand,
+ * msg moo cow
+ * will return:
+ * [0]: ""
+ * [1]: msg
+ * [2]: moo
+ * [3]: cow
+ *
+ * Passing malformed lines isn't a good idea.
+ */
+function parse_line($sLine)
+{
+	$i = 0;				// where in the array we're up to
+	$j = 0;				// which pos in the original array should be treated as a command
+
+	$aRet = array();
+	$aParm = explode(" ", $sLine);
+
+	if ($aParm[0][0] == ":")
+	{
+		// We have a prefix.
+		$aRet[0] = substr($aParm[0], 1);
+		$i = 1;
+		$j = 1;
+	}
+	else
+	{
+		// No prefix.
+		$aRet[0] = "";
+	}
+
+	for (; $i < count($aParm); $i++)
+	{
+		if ($i == $j)
+			$aParm[$i] = strtoupper($aParm[$i]); // uppercase commands
+
+		if ($aParm[$i][0] == ":")
+		{
+			// Strip :
+			$aParm[$i] = substr($aParm[$i], 1);
+
+			// Merge all further params
+			$aRet[$i] = implode(" ", array_slice($aParm, $i));
+			break; // and ignore everything else.
+		}
+		else
+		{
+			// It's a single param.
+			$aRet[$i] = $aParm[$i];
+		}
+	}
+
+	return $aRet;
+}
+
 class torc
 {
 	var $irc, $output;
@@ -78,6 +146,8 @@ class torc
 				//we have a line of input
 				if(substr($input, 0, 1) == "/")
 				{
+					// Old line parser.
+/*
 					$ex = explode(" ", $input);
 					$cmd = substr($ex[0], 1);
 					$msg = $ex;
@@ -93,6 +163,17 @@ class torc
 					$msgf[0] = "";
 					$msgf = trim(implode(" ", $msgf));
 					$ex[count($ex)-1] = trim($ex[count($ex)-1]);
+
+					$this->output->addtoircout($msg . " | " . $msgf . "\n");
+*/
+//					$ex = array_slice(parse_line($input), 1); // the array_slice is to keep backwards compatibility.
+
+
+					// Tear off /
+					$input = substr($input, 1);
+					$ex = parse_line($input);
+					$cmd = $ex[0];
+					$msg = implode($ex, " ");
 
 					switch(strtolower($cmd))
 					{
