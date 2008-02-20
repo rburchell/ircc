@@ -127,7 +127,9 @@ class torc
 		if ($this->irc->sp)
 			$aRead[] = $this->irc->sp;
 
-		$iStreams = stream_select($aRead, $aWrite, $aExcept, 1);
+		// It's annoying to have to @suppress warnings on stream_select(), but PHP raises E_NOTICE if select
+		// is interrupted by a signal etc, and I have no way of trapping that.
+		$iStreams = @stream_select($aRead, $aWrite, $aExcept, 1);
 
 		if ($iStreams == 0)
 			return;
