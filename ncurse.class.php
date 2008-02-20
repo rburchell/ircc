@@ -69,6 +69,7 @@ class ncurse
 		$this->stdin = fopen('php://stdin', 'r');
 
 		$this->ncursesess = ncurses_init();
+		ncurses_noecho();
 		ncurses_start_color();
 		ncurses_init_pair(1,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
 		ncurses_init_pair(2,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
@@ -185,7 +186,6 @@ class ncurse
 
 		while(stream_select($read, $write, $except, 0, 80000))
 		{
-			//$c = fgetc($this->stdin);
 			$c = ncurses_getch();
 
 			if ($c == 13) // Constant would be nice.
