@@ -11,6 +11,12 @@
  * (at your option) any later version.
  */
 
+/* Constants for our ncurses use. */
+define('NC_PAIR_IRCOUT',			1);					// Colour pair used for the IRC output window
+define('NC_PAIR_INPUT',				2);					// Colour pair used for the input window
+define('NC_PAIR_INPUT_ACTIVE',		3);					// Colour pair used for the input window, active window listing text.
+
+
 class Buffer
 {
 	var $topic;
@@ -74,8 +80,10 @@ class ncurse
 		$this->ncursesess = ncurses_init();
 		ncurses_noecho();
 		ncurses_start_color();
-		ncurses_init_pair(1,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
-		ncurses_init_pair(2,NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
+
+		ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
+		ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
+		ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
 
 		ncurses_curs_set(0);
 
@@ -273,13 +281,17 @@ class ncurse
 
 	function setuserinput()
 	{
-		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]";
+		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "] [Win: ";
 
+		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
+		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
+
+		/* Now we need to draw states for our various windows. */
 		$bShow = false;
-		$sActive = "[Win: ";
 
 		$aInactive = array();
 		$aActive = array();
+		$iChans = 0;
 
 		/*
 		 * Draw a list of all windows. First, get two arrays of which are active and not.
@@ -301,16 +313,26 @@ class ncurse
 		 */
 		foreach ($aActive as $iActive)
 		{
+//				ncurses_move(0, strlen($sStatus)); // Move to the end of the status line first, since this is the first chan
 			if ($bShow == false)
 			{
-				$sActive .= "_" . $iActive . "_";
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
+				ncurses_waddstr($this->userinputw, $iActive);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 				$bShow = true;
 			}
 			else
 			{
-				$sActive .= ", _" . $iActive . "_";
+				ncurses_waddstr($this->userinputw, ",");
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
+				ncurses_waddstr($this->userinputw, $iActive);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 			}
 		}
+//        ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
+//        ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
+//        ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
+
 
 		/*
 		 * Now append inactive windows. We don't make these stand out of course.
@@ -319,22 +341,23 @@ class ncurse
 		{
 			if ($bShow == false)
 			{
-				$sActive .= $iInactive;
+				ncurses_waddstr($this->userinputw, $iInactive);
 				$bShow = true;
 			}
 			else
 			{
-				$sActive .= ", " . $iInactive;
+				ncurses_waddstr($this->userinputw, ",");
+				ncurses_waddstr($this->userinputw, $iInactive);
 			}
 		}
 
-		$sStatus .= " " . $sActive . "]";
+		ncurses_waddstr($this->userinputw, "]");
 
-		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->aDisplayVars['window'] . "] " . $this->userinputt.'_');
+
+
 		ncurses_wrefresh($this->userinputw);
 	}
 
