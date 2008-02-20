@@ -307,9 +307,9 @@ class irc {
 			$iId = $this->torc->output->AddBuffer($this->ex[2]);
 			$this->chans[$this->ex[2]] = $iId;
 			$this->torc->output->DrawBuffer($iId);
+			$this->torc->output->Output(BUFFER_CURRENT, "Created a new buffer, ID is " . $this->GetBufferID($this->ex[2]));
 		}
 
-		$this->torc->output->Output(BUFFER_CURRENT, "Created a new buffer, ID is " . $this->GetBufferID($this->ex[2]));
 		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender. ' has joined '.substr($this->ex[2], 1));
 	}
 
