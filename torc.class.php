@@ -171,6 +171,11 @@ class torc
 						else
 							$this->output->Output(BUFFER_CURRENT, "That is not a valid window.");
 						break;
+					case 'q':
+					case 'query':
+						// XXX find buffer by name and go to it
+						$this->output->AddBuffer($ex[1]);
+						break;
 					case 'server':
 					case 'connect':
 						if(!empty($ex[2]))
@@ -314,6 +319,9 @@ class torc
 
 			// poll() may hang a while until activity on stdin or IRC
 			$this->poll();
+
+			// Update time display.
+			$this->output->setuserinput();
 		}
 	}
 	

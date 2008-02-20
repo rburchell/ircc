@@ -168,7 +168,8 @@ class irc {
 		$this->usernick = trim($nick);
 	}
 
-	function sjoin($chan){
+	function sjoin($chan)
+	{
 		$this->sendline('JOIN '.trim($chan));
 	}
 
@@ -295,14 +296,20 @@ class irc {
 
 	function procchanjoin()
 	{
+		$this->ex[2] = trim($this->ex[2]);
+
 		$iId = $this->GetBufferID($this->ex[2]);
 
 		// If the channel hasn't been created before, do so now.
 		if ($iId == -1)
 		{
+			$this->torc->output->Output(BUFFER_CURRENT, "Creating new buffer as current one doesn't exist for " . $this->ex[2]);
 			$iId = $this->torc->output->AddBuffer($this->ex[2]);
+			$this->chans[$this->ex[2]] = $iId;
 			$this->torc->output->DrawBuffer($iId);
 		}
+
+		$this->torc->output->Output(BUFFER_CURRENT, "Created a new buffer, ID is " . $this->GetBufferID($this->ex[2]));
 		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender. ' has joined '.substr($this->ex[2], 1));
 	}
 
@@ -353,7 +360,9 @@ class irc {
 	{
 		if ($this->ex[2][0] == "#")
 		{
-			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->ex[2].'/'.$this->sender.'> '.$this->msg);
+			file_put_contents("privlog", "ch is " . $this->ex[2] . " and buf id is " . 
+$this->GetBufferID($this->ex[2]), FILE_APPEND);
+			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->sender.'> '.$this->msg);
 		}
 		else
 		{

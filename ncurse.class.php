@@ -190,7 +190,7 @@ class ncurse
 		$read = array($this->stdin);
 		$write = $except = NULL;
 
-		while(stream_select($read, $write, $except, 0, 80000))
+		while(stream_select($read, $write, $except, 0, 0))
 		{
 			$c = ncurses_getch();
 
@@ -276,28 +276,59 @@ class ncurse
 		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]";
 
 		$bShow = false;
-		$sActive = "[Act: ";
+		$sActive = "[Win: ";
 
+		$aInactive = array();
+		$aActive = array();
+
+		/*
+		 * Draw a list of all windows. First, get two arrays of which are active and not.
+		 */
 		foreach ($this->aBuffers as $iBuffer => $oBuffer)
 		{
 			if ($oBuffer->active == true)
 			{
-				if ($bShow == false)
-				{
-					$bShow = true;
-					$sActive .= $iBuffer;
-				}
-				else
-				{
-					$sActive .= ", " . $iBuffer;
-				}
+				$aActive[] = $iBuffer;
+			}
+			else
+			{
+				$aInactive[] = $iBuffer;
 			}
 		}
 
-		if ($bShow)
+		/*
+		 * Now generate out list. First of all, we want to draw only active windows. We also want them to stand out.
+		 */
+		foreach ($aActive as $iActive)
 		{
-			$sStatus .= " " . $sActive . "]";
+			if ($bShow == false)
+			{
+				$sActive .= "_" . $iActive . "_";
+				$bShow = true;
+			}
+			else
+			{
+				$sActive .= ", _" . $iActive . "_";
+			}
 		}
+
+		/*
+		 * Now append inactive windows. We don't make these stand out of course.
+		 */
+		foreach ($aInactive as $iInactive)
+		{
+			if ($bShow == false)
+			{
+				$sActive .= $iInactive;
+				$bShow = true;
+			}
+			else
+			{
+				$sActive .= ", " . $iInactive;
+			}
+		}
+
+		$sStatus .= " " . $sActive . "]";
 
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
