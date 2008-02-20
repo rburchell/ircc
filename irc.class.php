@@ -15,7 +15,6 @@ class irc {
 	var $sp; 						// the socket file pointer
 	var $output;					// everything that is ready to be sent to whoever called us
 	var $usernick;					// the nick of the user
-	var $chan;
 
 	var $line; 						// the line we read from the irc input
 	var $sender;					// the nick that sent this message
@@ -25,7 +24,10 @@ class irc {
 	var $autonick;					// if this is true we auto change nicks
 	var $prevnick;					// the previus nick
 
-	var $sets, $chans = array();
+	var $sets;
+
+	var $chans = array();			// A lookup of channel name to buffer id
+	var $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
 
 	var $torc;
 
@@ -158,7 +160,9 @@ class irc {
 
 	//these are the S functions, that send data to the sock
 
-	function snick($nick){
+	function snick($nick)
+	{
+		// XXX DON'T assume this succeeds, move it to procnick()
 		$this->sendline('NICK '.trim($nick));
 		$this->prevnick = $this->usernick;
 		$this->usernick = trim($nick);
@@ -166,10 +170,6 @@ class irc {
 
 	function sjoin($chan){
 		$this->sendline('JOIN '.trim($chan));
-		$this->chan = trim($chan);
-		$iBuffer = $this->torc->output->AddBuffer();
-		$this->chans[$chan] = $iBuffer;
-		$this->torc->output->DrawBuffer($iBuffer);
 	}
 
 	function soper($name, $pass){
@@ -185,8 +185,6 @@ class irc {
 	}
 
 	function spart($chan, $reason = 'Parting'){
-		if(empty($chan))
-			$chan = $this->chan;
 		$this->sendline('PART '.trim($chan).' :'.trim($reason));
 		$this->torc->output->DeleteBuffer($this->chans[$chan]);
 		unset($this->chans[$chan]);
@@ -230,13 +228,11 @@ class irc {
 	}
 
 	function say($msg){
-		$this->sprivmsg($this->chan, trim($msg), false);
+		$this->sprivmsg($this->sCurrentTarget, trim($msg), false);
 		$this->torc->output->Output(BUFFER_CURRENT, '<'.$this->usernick.'> '.$msg);
 	}
 
 	function sversion($target){
-		if(empty($target))
-			$target = $this->chan;
 		$this->sprivmsg($target, chr(1).'VERSION'.chr(1), false);
 		$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION ' . $target);
 	}
@@ -246,8 +242,8 @@ class irc {
 	}
 
 	function saction($msg){
-		$this->sprivmsg($this->chan, chr(1).'ACTION '.trim($msg).chr(1),false);
-		$this->torc->output->Output(BUFFER_CURRENT, '*'.$this->usernick.'/'.$this->chan.' '.trim($msg).'*');
+		$this->sprivmsg($this->sCurrentTarget, chr(1).'ACTION '.trim($msg).chr(1),false);
+		$this->torc->output->Output(BUFFER_CURRENT, '*'.$this->usernick . ' '.trim($msg).'*');
 	}
 
 
@@ -304,7 +300,7 @@ class irc {
 		// If the channel hasn't been created before, do so now.
 		if ($iId == -1)
 		{
-			$iId = $this->torc->output->AddBuffer();
+			$iId = $this->torc->output->AddBuffer($this->ex[2]);
 			$this->torc->output->DrawBuffer($iId);
 		}
 		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender. ' has joined '.substr($this->ex[2], 1));

@@ -270,8 +270,10 @@ class torc
 
 	function torc($server, $mode, $nick, $ssl, $port)
 	{
-		$this->output = new ncurse();
-		$this->output->AddBuffer(); // Create status buffer. ALWAYS at position 0.
+		$sStatus = "Status";
+		$this->output = new ncurse($this);
+		$this->output->SetDisplayVar("nick", ""); // Bit of a hack. Stops the AddBuffer below exploding things.
+		$this->output->AddBuffer($sStatus); // Create status buffer. ALWAYS at position 0.
 		$this->irc = new irc($this);
 
 		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client\n");
@@ -309,26 +311,9 @@ class torc
 		{
 			// XXX we shouldn't have to reset these constantly..
 			$this->output->SetDisplayVar("nick", $this->irc->usernick);
-			$this->output->SetDisplayVar("window", $this->irc->chan);
-			$this->output->setuserinput();
 
 			// poll() may hang a while until activity on stdin or IRC
 			$this->poll();
-
-/*
-			// XXX buffers need to be seperate from IRC
-			$out = explode("\n", $this->irc->getout());
-
-			foreach($out as $send)
-			{
-				$t = trim($send);
-
-				if(!empty($t))
-					$this->output->Output(BUFFER_STATUS, BUFFER_STATUS, , $send."\n");
-
-				unset($t);
-			}
-*/
 		}
 	}
 	

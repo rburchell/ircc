@@ -18,11 +18,12 @@ class Buffer
 	var $scroll = 0;
 	var $ncurse;
 	var $active;					// fucking true if there is fucking shit to fucking show in this window.
+	var $sName;						// Window title. e.g. nick of the person you're in query with or channel name.
 
-
-	public function __construct(&$ncurse)
+	public function __construct(&$ncurse, &$sName)
 	{
 		$this->ncurse = $ncurse;
+		$this->sName = $sName;
 	}
 
 	public function AddToBuffer(&$sBuf)
@@ -63,9 +64,11 @@ class ncurse
 	var $aDisplayVars = array();		// This contains information (like name etc) that are used when painting the GUI
 	var $aBuffers = array();			// Numerically indexed array of Buffer instances.
 	var $iCurrentBuffer = 0;
+	var $torc;							// Reference to instance of main class
 
-	function ncurse()
+	function ncurse(&$torc)
 	{
+		$this->torc = $torc;
 		$this->stdin = fopen('php://stdin', 'r');
 
 		$this->ncursesess = ncurses_init();
@@ -101,13 +104,13 @@ class ncurse
 	 * Creates a new buffer, and returns the index it may be referenced by.
 	 *
 	 */
-	function AddBuffer()
+	function AddBuffer(&$sName)
 	{
 		for ($i = 0; /* nothing */; $i++)
 		{
 			if (!isset($this->aBuffers[$i]))
 			{
-				$this->aBuffers[$i] = new Buffer($this);
+				$this->aBuffers[$i] = new Buffer($this, $sName);
 				return $i;
 			}
 		}
@@ -134,6 +137,9 @@ class ncurse
 	{
 		file_put_contents("buffer.log", "drawing buffer " . $iBuffer . " with contents " . $this->aBuffers[$iBuffer]->GetBuffer());
 		$this->iCurrentBuffer = $iBuffer;
+		$this->torc->irc->sCurrentTarget = $this->aBuffers[$iBuffer]->sName;
+		$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
+		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
 		$ex = explode("\n", $this->aBuffers[$iBuffer]->GetBuffer());
 
