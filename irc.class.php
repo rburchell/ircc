@@ -276,7 +276,7 @@ class irc {
 	function procnick()
 	{
 		// XXX we need to output this on all buffers, or something.
-		$this->torc->output->Output(BUFFER_CURRENT, $this->sender.' is now known as '.substr($this->ex[2], 1));
+		$this->torc->output->Output(BUFFER_CURRENT, $this->sender.' is now known as '.$this->ex[2]);
 	}
 
 	function procquit()
