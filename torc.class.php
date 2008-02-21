@@ -295,24 +295,9 @@ class torc
 			$this->username = $_ENV['USER'];
 		}
 
-		if($nick == -2)
-			$this->nick = $this->username;
-		else
-			$this->nick = $nick;
-
-		if($server != -2)
-		{
-			$this->output->Output(BUFFER_STATUS, 'connecting to ['.$server.'], port '.$port.', ssl mode: '.(int)$ssl);
-			$this->irc->connect($server, $port, $ssl, $this->username, "torc", "server", "torc - torx irc user", $this->nick);
-		}
-		else
-		{
-			$this->output->Output(BUFFER_STATUS, "use the /SERVER command to connect to a server");
-			$this->output->Output(BUFFER_STATUS, "/QUIT to quit\n\n\n");
-		}
-
-		$updct = 100;
-		$prct = 0;
+		$this->nick = $this->username;
+		$this->output->Output(BUFFER_STATUS, "use the /SERVER command to connect to a server");
+		$this->output->Output(BUFFER_STATUS, "/QUIT to quit\n\n\n");
 
 		while (true)
 		{
@@ -365,31 +350,10 @@ for($x = 1; $x < $argc; $x++)
 {
 	switch ($argv[$x])
 	{
-		case '-n':
-			$nick = $argv[$x+1];
-			$x++;
-			break;
-		case '-c':
-			$server = $argv[$x+1];
-			$x++;
-			break;
-		case '-s':
-			$ssl = true;
-			break;
-		case '-p':
-			$port = (int)$argv[$x+1];
-			$x++;
-			break;
-		case '-m':
-			$mode = $argv[$x+1];
-			$x++;
-			break;
 		default:
 			torc::usage();
 		break;
 	}
-
-
 }
 
 new torc($server, $mode, $nick, $ssl, $port);
