@@ -76,11 +76,15 @@ class ncurse
 	{
 		$this->torc = $torc;
 		$this->stdin = fopen('php://stdin', 'r');
+		stream_set_blocking($this->stdin, 0); // disable blocking
 
 		$this->ncursesess = ncurses_init();
-		ncurses_noecho();
-		ncurses_start_color();
+		ncurses_noecho(); // turn off echo to screen
+		ncurses_start_color(); // initialise colour
+		ncurses_cbreak(); // turn off buffering
 
+		// Initialise the colour pairs that we'll use. First param is a define so we don't have to use
+		// magic numbers all through the app.
 		ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
 		ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
 		ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
@@ -193,49 +197,68 @@ class ncurse
 			$this->aBuffers[$iBuffer]->active = true;
 	}
 
-	/*
-	 * Param aChar fakes a character of user input. This is used in a messy manner currently to hack around meta keys.
-	 */
-	function getuserinput($aChar = "")
+	function getuserinput()
 	{
-		static $LastChar = -1;
+		static $buffer = "";
+		static $bAlt = false;
 
-		$read = array($this->stdin);
-		$write = $except = NULL;
-
-		while ($aChar || stream_select($read, $write, $except, 0, 0))
+		/*
+		 * You may very well ask "why not use fgetc or ncurses_getch in a loop", and that would be a very good question.
+		 * The quick answer is that "it's complicated". Here's why.
+		 *
+		 * ncurses seems to do some trippy buffering with meta combinations (such as alt+a), where it doesn't actually
+		 * send as it should using getch(). I think that setting ncurses into nonblocking mode would fix this, but,
+		 * unfortunately ncurses_nodelay() is not implemented, so we have to roll our own.
+		 *
+		 * Basic summary:
+		 *  Read a buffer from stdin (which is set to nonblocking), and append it to our static buffer while there
+		 *  is info to read. After that, while there is a character to process, process it, then shift the string upwards
+		 *  to get to the next char.
+		 *
+		 *  This probably isn't the most efficient method in the galaxy, but it seems to work okay, and even work with
+		 *  meta key combinations, which makes it worth it's weight in gold to me.
+		 *  (the previous method of storing the previous char, setting alt status + reading previous char again,
+		 *  then faking ^G to remove previous char from input buffer was just plain fucked up).
+		 */
+		while (($buf = fgets($this->stdin, 4096)) != false)
 		{
-			if ($aChar)
+			//fgets is required if we want to handle escape sequenced keys
+			$buffer .= $buf;
+		}
+
+		while (isset($buffer[0]))
+		{
+			$c = ord($buffer[0]);
+
+			if (strlen($buffer) > 1)
 			{
-				/*
-				 * Fake the user input instead of reading from ncurses.
-				 */
-				$c = $aChar;
-				$aChar = "";
+				$buffer = substr($buffer, 1);
 			}
 			else
 			{
-				$c = ncurses_getch();
+				$buffer = "";
 			}
 
-			$this->torc->output->Output(BUFFER_CURRENT, "lol, key code pressed is " . $c . " lastchar is " . $LastChar);
+			/*
+			 * We do this in a seperate switch so we can unset meta combinations if they don't fit our demands easily.
+			 */
+			if ($bAlt)
+			{
+				$bAlt = false;
+
+				switch (chr($c))
+				{
+					case 'a':
+						$this->torc->output->Output(BUFFER_CURRENT, "got alt+a!");
+						break;
+				}
+			}
 
 			switch ($c)
 			{
 				case 27:
-					if ($LastChar == 'a')
-					{
-						/*
-						 * This means we got a special key combo (alt+a). Do our stuff first.
-						 */
-						$this->torc->output->Output(BUFFER_CURRENT, "alt+a pressed! :)");
-
-						/*
-						 * Then fake a backspace to remove the 'a' we got on the previous call. (sigh)
-						 * This is, of course, fucking shit.
-						 */
-						$this->getuserinput(NCURSES_KEY_BACKSPACE);
-					}
+					// Alt modifier.
+					$bAlt = true;
 					break;
 				case 13:
 					$usrp = $this->userinputt;
@@ -246,7 +269,7 @@ class ncurse
 					$this->sendhislu = true;
 					return $usrp;
 					break;
-				case NCURSES_KEY_BACKSPACE:
+				case 127: // backspace, apparantly NCURSES_KEY_BACKSPACE doesn't like our homegrown buffer reading
 					$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
 					$this->setuserinput();
 					break;		
@@ -294,15 +317,6 @@ class ncurse
 					$this->setuserinput();
 					break;
 			}
-
-			/*
-			 * LastChar is our (semihacky) way of picking up key combos, such as alt+a to hit the first active buffer.
-			 * Basically, ncurses sends us a+alt - not alt+a, so we store the 'a', and when we recieve alt, trigger the
-			 * appropriate combo.
-			 *
-			 * Of course, I wish there was a way to just retrieve meta state, but I can't find one.
-		 	 */
-			$LastChar = chr($c);
 		}
 
 
