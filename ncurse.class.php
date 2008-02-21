@@ -193,85 +193,121 @@ class ncurse
 			$this->aBuffers[$iBuffer]->active = true;
 	}
 
-	function getuserinput()
+	/*
+	 * Param aChar fakes a character of user input. This is used in a messy manner currently to hack around meta keys.
+	 */
+	function getuserinput($aChar = "")
 	{
+		static $LastChar = -1;
+
 		$read = array($this->stdin);
 		$write = $except = NULL;
 
-		while(stream_select($read, $write, $except, 0, 0))
+		while ($aChar || stream_select($read, $write, $except, 0, 0))
 		{
-			$c = ncurses_getch();
-
-			if ($c == 13) // Constant would be nice.
+			if ($aChar)
 			{
-				$usrp = $this->userinputt;
-				$this->sendhis[] = $usrp;
-				$this->sendhispt = count($this->sendhis)-1;
-				$this->userinputt = '';
-				$this->setuserinput();
-				$this->sendhislu = true;
-				return $usrp;
-			}
-			elseif($c == NCURSES_KEY_BACKSPACE)
-			{
-				$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
-				$this->setuserinput();
-				return false;
-			}
-			elseif ($c == NCURSES_KEY_NPAGE)
-			{
-				$this->scrollfd = $this->scrollfd - $this->lines;
-				if($this->scrollfd < 0)
-					$this->scrollfd = 0;
-				$this->buildircout($this->scrollfd);
-				return false;
-			}
-			elseif ($c == NCURSES_KEY_PPAGE)
-			{
-				$ex = explode("\n", $this->ircout_content);
-				$this->scrollfd = $this->scrollfd + $this->lines;
-				if ($this->scrollfd > count($ex))
-					$this->scrollfd = count($ex);
-				$this->buildircout($this->scrollfd);
-				return false;
-			}
-			elseif ($c == NCURSES_KEY_UP)
-			{
-				if($this->sendhispt >= 0)
-				{
-					if(!$this->sendhislu)
-					{
-						$this->sendhispt--;
-						$this->sendhislu = true;
-					}
-					$this->userinputt = $this->sendhis[$this->sendhispt];
-					$this->sendhispt--;
-					$this->setuserinput();
-				}
-				return false;
-			}
-			elseif ($c == NCURSES_KEY_DOWN)
-			{
-				if($this->sendhispt+1 < count($this->sendhis) - 1)
-				{
-					if($this->sendhislu)
-					{
-						$this->sendhispt++;
-						$this->sendhislu = false;
-					}
-					$this->sendhispt++;
-					$this->userinputt = $this->sendhis[$this->sendhispt];
-					$this->setuserinput();
-				}
-				return false;
+				/*
+				 * Fake the user input instead of reading from ncurses.
+				 */
+				$c = $aChar;
+				$aChar = "";
 			}
 			else
 			{
-				$this->userinputt .= chr($c);
-				$this->setuserinput();
-				return false;
+				$c = ncurses_getch();
 			}
+
+			$this->torc->output->Output(BUFFER_CURRENT, "lol, key code pressed is " . $c . " lastchar is " . $LastChar);
+
+			switch ($c)
+			{
+				case 27:
+					if ($LastChar == 'a')
+					{
+						/*
+						 * This means we got a special key combo (alt+a). Do our stuff first.
+						 */
+						$this->torc->output->Output(BUFFER_CURRENT, "alt+a pressed! :)");
+
+						/*
+						 * Then fake a backspace to remove the 'a' we got on the previous call. (sigh)
+						 * This is, of course, fucking shit.
+						 */
+						$this->getuserinput(NCURSES_KEY_BACKSPACE);
+					}
+					break;
+				case 13:
+					$usrp = $this->userinputt;
+					$this->sendhis[] = $usrp;
+					$this->sendhispt = count($this->sendhis)-1;
+					$this->userinputt = '';
+					$this->setuserinput();
+					$this->sendhislu = true;
+					return $usrp;
+					break;
+				case NCURSES_KEY_BACKSPACE:
+					$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
+					$this->setuserinput();
+					break;		
+				case NCURSES_KEY_NPAGE:
+					$this->scrollfd = $this->scrollfd - $this->lines;
+					if($this->scrollfd < 0)
+						$this->scrollfd = 0;
+					$this->buildircout($this->scrollfd);
+					break;
+				case NCURSES_KEY_PPAGE:	
+					$ex = explode("\n", $this->ircout_content);
+					$this->scrollfd = $this->scrollfd + $this->lines;
+					if ($this->scrollfd > count($ex))
+						$this->scrollfd = count($ex);
+					$this->buildircout($this->scrollfd);
+					break;
+				case NCURSES_KEY_UP:
+					if($this->sendhispt >= 0)
+					{
+						if(!$this->sendhislu)
+						{
+							$this->sendhispt--;
+							$this->sendhislu = true;
+						}
+						$this->userinputt = $this->sendhis[$this->sendhispt];
+						$this->sendhispt--;
+						$this->setuserinput();
+					}
+					break;
+				case NCURSES_KEY_DOWN:
+					if($this->sendhispt+1 < count($this->sendhis) - 1)
+					{
+						if($this->sendhislu)
+						{
+							$this->sendhispt++;
+							$this->sendhislu = false;
+						}
+						$this->sendhispt++;
+						$this->userinputt = $this->sendhis[$this->sendhispt];
+						$this->setuserinput();
+					}
+					break;
+				default:
+					$this->userinputt .= chr($c);
+					$this->setuserinput();
+					break;
+			}
+
+			/*
+			 * LastChar is our (semihacky) way of picking up key combos, such as alt+a to hit the first active buffer.
+			 * Basically, ncurses sends us a+alt - not alt+a, so we store the 'a', and when we recieve alt, trigger the
+			 * appropriate combo.
+			 *
+			 * Of course, I wish there was a way to just retrieve meta state, but I can't find one.
+		 	 */
+			$LastChar = chr($c);
 		}
+
+
+		// And let caller know that nothing came out of the input buffer.
+		return false;
 	}
 	
 	function SetDisplayVar($sKey, $sVal)
