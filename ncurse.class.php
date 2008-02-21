@@ -250,6 +250,38 @@ class ncurse
 
 			//$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
 
+/*15:43 <~Trystan`> III// Shifted Keypad
+15:43 <~Trystan`> IIIcase KEY_A1: // 7
+15:43 <~Trystan`> IIIIdigit(7);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_A3: // 9
+15:43 <~Trystan`> IIIIdigit(9);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_C1: // 1
+15:43 <~Trystan`> IIIIdigit(1);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_C3: // 3
+15:43 <~Trystan`> IIIIdigit(3);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_SPREVIOUS: // 8
+15:43 <~Trystan`> IIIIdigit(8);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_SNEXT: // 2
+15:43 <~Trystan`> IIIIdigit(2);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_B2: // 5
+15:43 <~Trystan`> IIIIdigit(5);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_SIC: // 0
+15:43 <~Trystan`> IIIIdigit(0);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_SLEFT: // 4
+15:43 <~Trystan`> IIIIdigit(4);
+15:43 <~Trystan`> IIIIbreak;
+15:43 <~Trystan`> IIIcase KEY_SRIGHT: // 6
+15:43 <~Trystan`> IIIIdigit(6);
+*/
+
 			/*
 			 * We do this in a seperate switch so we can unset meta combinations if they don't fit our demands easily.
 			 */
@@ -268,6 +300,42 @@ class ncurse
 
 			switch ($c)
 			{
+				/* Cheat a bit here. We want to rewrite these as normal digits for the second switch. */
+				case NCURSES_KEY_A1: // 7
+					$this->torc->output->Output(BUFFER_CURRENT, "got 7");
+					$c = ord("7");
+					break;
+				case NCURSES_KEY_SPREVIOUS: // 8
+					$c = ord("8");
+					break;
+				case NCURSES_KEY_A3: // 9
+					$c = ord("9");
+					break;
+
+				case NCURSES_KEY_SLEFT: // 4
+					$c = ord("4");
+					break;
+				case NCURSES_KEY_B2: // 5
+					$c = ord("5");
+					break;
+				case NCURSES_KEY_SRIGHT: // 6
+					$c = ord("6");
+					break;
+
+				case NCURSES_KEY_C1: // 1
+					$c = ord("1");
+					break;
+				case NCURSES_KEY_SNEXT: // 2
+					$c = ord("2");
+					break;
+				case NCURSES_KEY_C3: // 3
+					$c = ord("3");
+					break;
+
+				case NCURSES_KEY_SIC: // 0
+					$c = ord("0");
+					break;
+
 				case 27:
 					// Alt modifier.
 					$bAlt = true;
