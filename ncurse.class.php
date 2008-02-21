@@ -104,6 +104,8 @@ class ncurse
 		$this->ircoutput = ncurses_newwin($this->lines-2, $this->columns, 0, 0);
 		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
 
+		ncurses_keypad($this->userinputw, true); // enable keypad.
+
 		ncurses_wcolor_set($this->ircoutput, 1);
 		ncurses_wcolor_set($this->userinputw, 2);
 
@@ -199,7 +201,7 @@ class ncurse
 
 	function getuserinput()
 	{
-		static $buffer = "";
+//		static $buffer = "";
 		static $bAlt = false;
 
 		/*
@@ -220,24 +222,33 @@ class ncurse
 		 *  (the previous method of storing the previous char, setting alt status + reading previous char again,
 		 *  then faking ^G to remove previous char from input buffer was just plain fucked up).
 		 */
-		while (($buf = fgets($this->stdin, 4096)) != false)
-		{
-			//fgets is required if we want to handle escape sequenced keys
-			$buffer .= $buf;
-		}
+//		while (($buf = fgets($this->stdin, 4096)) != false)
+//		{
+//			//fgets is required if we want to handle escape sequenced keys
+//			$buffer .= $buf;
+//		}
 
-		while (isset($buffer[0]))
-		{
-			$c = ord($buffer[0]);
+		//$buffer = ncurses_getch();
+		//$this->torc->output->Output(BUFFER_CURRENT, "lol: " . $buffer);
 
-			if (strlen($buffer) > 1)
-			{
-				$buffer = substr($buffer, 1);
-			}
-			else
-			{
-				$buffer = "";
-			}
+		//while (isset($buffer[0]))
+		while ($c = ncurses_getch())
+		{
+//			$c = ord($buffer[0]);
+
+			if ($c == -1)
+				break;
+
+//			if (strlen($buffer) > 1)
+//			{
+//				$buffer = substr($buffer, 1);
+//			}
+//			else
+//			{
+//				$buffer = "";
+//			}
+
+			//$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
 
 			/*
 			 * We do this in a seperate switch so we can unset meta combinations if they don't fit our demands easily.
@@ -250,6 +261,7 @@ class ncurse
 				{
 					case 'a':
 						$this->torc->output->Output(BUFFER_CURRENT, "got alt+a!");
+						return;
 						break;
 				}
 			}
@@ -269,7 +281,7 @@ class ncurse
 					$this->sendhislu = true;
 					return $usrp;
 					break;
-				case 127: // backspace, apparantly NCURSES_KEY_BACKSPACE doesn't like our homegrown buffer reading
+				case NCURSES_KEY_BACKSPACE:
 					$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
 					$this->setuserinput();
 					break;		
