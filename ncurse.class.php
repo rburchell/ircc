@@ -104,7 +104,7 @@ class ncurse
 		$this->ircoutput = ncurses_newwin($this->lines-2, $this->columns, 0, 0);
 		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
 
-		ncurses_keypad($this->userinputw, true); // enable keypad.
+		//ncurses_keypad($this->userinputw, true); // enable keypad.
 
 		ncurses_wcolor_set($this->ircoutput, 1);
 		ncurses_wcolor_set($this->userinputw, 2);
@@ -201,86 +201,14 @@ class ncurse
 
 	function getuserinput()
 	{
-//		static $buffer = "";
 		static $bAlt = false;
 
-		/*
-		 * You may very well ask "why not use fgetc or ncurses_getch in a loop", and that would be a very good question.
-		 * The quick answer is that "it's complicated". Here's why.
-		 *
-		 * ncurses seems to do some trippy buffering with meta combinations (such as alt+a), where it doesn't actually
-		 * send as it should using getch(). I think that setting ncurses into nonblocking mode would fix this, but,
-		 * unfortunately ncurses_nodelay() is not implemented, so we have to roll our own.
-		 *
-		 * Basic summary:
-		 *  Read a buffer from stdin (which is set to nonblocking), and append it to our static buffer while there
-		 *  is info to read. After that, while there is a character to process, process it, then shift the string upwards
-		 *  to get to the next char.
-		 *
-		 *  This probably isn't the most efficient method in the galaxy, but it seems to work okay, and even work with
-		 *  meta key combinations, which makes it worth it's weight in gold to me.
-		 *  (the previous method of storing the previous char, setting alt status + reading previous char again,
-		 *  then faking ^G to remove previous char from input buffer was just plain fucked up).
-		 */
-//		while (($buf = fgets($this->stdin, 4096)) != false)
-//		{
-//			//fgets is required if we want to handle escape sequenced keys
-//			$buffer .= $buf;
-//		}
-
-		//$buffer = ncurses_getch();
-		//$this->torc->output->Output(BUFFER_CURRENT, "lol: " . $buffer);
-
-		//while (isset($buffer[0]))
-		while ($c = ncurses_getch())
+		while ($c = ncurses_wgetch($this->userinputw))
 		{
-//			$c = ord($buffer[0]);
-
 			if ($c == -1)
 				break;
 
-//			if (strlen($buffer) > 1)
-//			{
-//				$buffer = substr($buffer, 1);
-//			}
-//			else
-//			{
-//				$buffer = "";
-//			}
-
-			//$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
-
-/*15:43 <~Trystan`> III// Shifted Keypad
-15:43 <~Trystan`> IIIcase KEY_A1: // 7
-15:43 <~Trystan`> IIIIdigit(7);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_A3: // 9
-15:43 <~Trystan`> IIIIdigit(9);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_C1: // 1
-15:43 <~Trystan`> IIIIdigit(1);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_C3: // 3
-15:43 <~Trystan`> IIIIdigit(3);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_SPREVIOUS: // 8
-15:43 <~Trystan`> IIIIdigit(8);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_SNEXT: // 2
-15:43 <~Trystan`> IIIIdigit(2);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_B2: // 5
-15:43 <~Trystan`> IIIIdigit(5);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_SIC: // 0
-15:43 <~Trystan`> IIIIdigit(0);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_SLEFT: // 4
-15:43 <~Trystan`> IIIIdigit(4);
-15:43 <~Trystan`> IIIIbreak;
-15:43 <~Trystan`> IIIcase KEY_SRIGHT: // 6
-15:43 <~Trystan`> IIIIdigit(6);
-*/
+			$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
 
 			/*
 			 * We do this in a seperate switch so we can unset meta combinations if they don't fit our demands easily.
@@ -300,42 +228,6 @@ class ncurse
 
 			switch ($c)
 			{
-				/* Cheat a bit here. We want to rewrite these as normal digits for the second switch. */
-				case NCURSES_KEY_A1: // 7
-					$this->torc->output->Output(BUFFER_CURRENT, "got 7");
-					$c = ord("7");
-					break;
-				case NCURSES_KEY_SPREVIOUS: // 8
-					$c = ord("8");
-					break;
-				case NCURSES_KEY_A3: // 9
-					$c = ord("9");
-					break;
-
-				case NCURSES_KEY_SLEFT: // 4
-					$c = ord("4");
-					break;
-				case NCURSES_KEY_B2: // 5
-					$c = ord("5");
-					break;
-				case NCURSES_KEY_SRIGHT: // 6
-					$c = ord("6");
-					break;
-
-				case NCURSES_KEY_C1: // 1
-					$c = ord("1");
-					break;
-				case NCURSES_KEY_SNEXT: // 2
-					$c = ord("2");
-					break;
-				case NCURSES_KEY_C3: // 3
-					$c = ord("3");
-					break;
-
-				case NCURSES_KEY_SIC: // 0
-					$c = ord("0");
-					break;
-
 				case 27:
 					// Alt modifier.
 					$bAlt = true;
