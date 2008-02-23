@@ -149,7 +149,6 @@ class ncurse
 	 */
 	function DrawBuffer($iBuffer)
 	{
-		file_put_contents("buffer.log", "drawing buffer " . $iBuffer . " with contents " . $this->aBuffers[$iBuffer]->GetBuffer());
 		$this->iCurrentBuffer = $iBuffer;
 		$this->torc->irc->sCurrentTarget = $this->aBuffers[$iBuffer]->sName;
 		$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
