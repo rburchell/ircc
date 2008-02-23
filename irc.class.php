@@ -339,6 +339,9 @@ class irc {
 				$this->sendline("NICK " . $this->ex[3].'_');
 		}
 
+		if ($this->ex[1] == "001")
+			$this->usernick = $this->ex[2];
+
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
 
