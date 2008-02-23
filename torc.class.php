@@ -257,7 +257,6 @@ class torc
 						$this->irc->sprivmsg($ex[1], $msg);
 						break;
 					default:
-						$this->output->Output(BUFFER_STATUS, 'warning: unknow command ['.$cmd."], sending raw to server");
 						$this->irc->sendline($cmd." ".$msgf);
 						break;
 				}
