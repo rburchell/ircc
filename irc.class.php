@@ -22,7 +22,6 @@ class irc {
 	var $ex;						// the explode(' ', $line), we use this a lot so it's an attribute
 	var $msg;						// this is everything after the : (reread each line)
 	var $autonick;					// if this is true we auto change nicks
-	var $prevnick;					// the previus nick
 
 	var $sets;
 
@@ -46,15 +45,19 @@ class irc {
 		$realname,			// (string) realname send in USER command
 		$nick,					// (string) nick to specify in connect NICK command
 		$pass = ''			// (string) optional password for server
-	) {
+	)
+	{
 		$this->autonick = 1;
 		
 		$this->sets = array();
 		$this->sets['timestamp'] = true;
 
-		if($ssl){		// if we use ssl we must prefix our connect host with ssl://
+		if($ssl)
+		{		// if we use ssl we must prefix our connect host with ssl://
 			$cntserver = 'ssl://'.$server;
-		} else {
+		}
+		else
+		{
 			$cntserver = $server;
 		}
 
@@ -74,7 +77,7 @@ class irc {
 
 		if(!empty($pass))
 			$this->sendline('PASS '.$pass);
-		$this->snick($nick);
+		$this->sendline('NICK ' . $nick);
 		$this->sendline('USER '.$username.' '.$hostname.' '.$servername.' :'.$realname);
 
 		// well, this should be it
@@ -88,12 +91,14 @@ class irc {
 		return 0;
 	}
 
-	// note that this function will hang the script while nothing is recieved
-	// so users cannot send something, i hope to solve that in the ncurses interface
-	// for bots this shouldn't be much of a problem
+	/*
+	 * Careful!
+	 *  This blocks if called when there is no output to read - of course, this is a bad thing.
+	 *  This should only be called from the main polling loop really.
+	 */
 	function procline ()
 	{
-		$this->line = fgets($this->sp);		// this should ONLY be called by procline()	
+		$this->line .= fgets($this->sp);		// this should ONLY be called by procline()	
 
 		if(substr($this->line, -1) != "\n")
 		{
@@ -103,9 +108,8 @@ class irc {
 		// This is all ugly, really. Backwards compatibility.
 		$this->line = trim($this->line);
 		$this->ex = parse_line($this->line);
-		//$this->msg = implode(array_slice($this->ex, 1), " ");
+		$this->line = "";
 		$this->msg = $this->ex[count($this->ex) - 1];
-		//msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
 		$this->sender = explode("!", $this->ex[0]);
 		$this->sender = $this->sender[0];
 
@@ -158,30 +162,13 @@ class irc {
 		return 0;
 	}
 
-	//these are the S functions, that send data to the sock
-
-	function snick($nick)
+	function skick($chan, $victim, $reason = "Expelled")
 	{
-		// XXX DON'T assume this succeeds, move it to procnick()
-		$this->sendline('NICK '.trim($nick));
-		$this->prevnick = $this->usernick;
-		$this->usernick = trim($nick);
-	}
-
-	function sjoin($chan)
-	{
-		$this->sendline('JOIN '.trim($chan));
-	}
-
-	function soper($name, $pass){
-		$this->sendline('OPER '.trim($name).' '.trim($pass));
-	}
-
-	function skick($chan, $victim, $reason = "Expelled"){
 		$this->sendline('KICK '.trim($chan).' '.trim($victim).' :'.trim($target));
 	}
 
-	function smode($target, $mode){
+	function smode($target, $mode)
+	{
 		$this->sendline('MODE '.trim($target).' '.trim($mode));
 	}
 
@@ -275,6 +262,10 @@ class irc {
 
 	function procnick()
 	{
+		// We want to update our nick IF: it's us changing nick, or if we haven't yet set a nick.
+		if ($this->usernick == $this->sender || empty($this->usernick))
+			$this->usernick = $this->ex[2];
+
 		// XXX we need to output this on all buffers, or something.
 		$this->torc->output->Output(BUFFER_CURRENT, $this->sender.' is now known as '.$this->ex[2]);
 	}
@@ -345,16 +336,8 @@ class irc {
 				$this->autonick = false;
 
 			if($this->ex[1] == 437 || $this->ex[1] == 433)
-				$this->snick($this->usernick.'_');
-
+				$this->sendline("NICK " . $this->ex[3].'_');
 		}
-		else
-		{
-			if($this->ex[1] == 437 || $this->ex[1] == 433)
-				$this->snick($this->prevnick);
-		}
-
-
 
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
@@ -366,8 +349,7 @@ class irc {
 	{
 		if ($this->ex[2][0] == "#")
 		{
-			file_put_contents("privlog", "ch is " . $this->ex[2] . " and buf id is " . 
-$this->GetBufferID($this->ex[2]), FILE_APPEND);
+			file_put_contents("privlog", "ch is " . $this->ex[2] . " and buf id is " . $this->GetBufferID($this->ex[2]), FILE_APPEND);
 			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->sender.'> '.$this->msg);
 		}
 		else

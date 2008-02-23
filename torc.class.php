@@ -196,17 +196,8 @@ class torc
 					case 'quit':
 						$this->shutdown($msgf);
 						break;
-					case 'join':
-						$this->irc->sjoin($ex[1]);
-						break;
-					case 'nick':
-						$this->irc->snick($ex[1]);
-						break;
 					case 'part':
 						$this->irc->spart($ex[1], $ex[2]);
-						break;
-					case 'oper':
-						$this->irc->soper($ex[1], $ex[2]);
 						break;
 					case 'mode':
 						$this->irc->smode($ex[1], $ex[2]);
