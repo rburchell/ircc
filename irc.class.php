@@ -313,8 +313,14 @@ class irc {
 		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender. ' has joined '.substr($this->ex[2], 1));
 	}
 
-	function procchanmode(){
-		$this->torc->output->Output($this->GetBufferID($this->ex[2]), 'chanmode '.$this->ex[2].' '.$this->ex[3].' '.isset($this->ex[4]) ? this->ex[4] : "".' by '.$this->sender);
+	function procchanmode()
+	{
+		$sOut = 'chanmode ' . $this->ex[2] . ' ' . $this->ex[3];
+		if (isset($this->ex[4]))
+			$sOut .= ' ' . $this->ex[4];
+		$sOut .= ' by '.$this->sender;
+
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $sOut);
 	}
 
 	function procusermode(){
