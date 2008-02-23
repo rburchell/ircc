@@ -12,7 +12,7 @@
  * (at your option) any later version.
  */
 
-set_error_handler(array("torc", "ErrorHandler"));
+set_error_handler("ErrorHandler");
 date_default_timezone_set("UTC"); // XXX guess the tz?
 set_time_limit(0);
 error_reporting(E_ALL);
@@ -22,8 +22,22 @@ define('IRCC_VER', 'ircc-0.01');
 define('BUFFER_STATUS', 0);
 define('BUFFER_CURRENT', -1);
 
-include "ncurse.class.php";
-include "irc.class.php";
+require("ncurse.class.php");
+require("irc.class.php");
+
+/*
+ * This is a kind of ugly hack.
+ * Error handler won't have an instance of the torc class (or might not), so we pop errors into here from our handler.
+ * Every second (to prevent flooding the fuck out of a user), an error will be popped off the array and displayed in the current buffer.
+ */
+$aErrors = array();
+
+// error handler function
+function ErrorHandler($errno, $errstr, $errfile, $errline)
+{
+	global $aErrors;
+	$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
+}
 
 /*
  * Returns an array of:
@@ -309,6 +323,12 @@ class torc
 
 			// Update time display.
 			$this->output->setuserinput();
+
+			// Pop an error off and display to the user, if there is one.
+			// Only display one to avoid flooding.
+			global $aErrors;
+			if (($sMsg = array_pop($aErrors)))
+				$this->output->Output(BUFFER_CURRENT, $sMsg);
 		}
 	}
 	
@@ -325,13 +345,6 @@ usage: ircc [options]
     -n torx            use torx as nick
 
 ");
-	}
-
-	// error handler function
-	function ErrorHandler($errno, $errstr, $errfile, $errline)
-	{
-		file_put_contents("error.log", $errstr . ": " . $errfile . ":" . $errline);
-		die();
 	}
 }
 
