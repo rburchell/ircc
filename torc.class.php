@@ -269,7 +269,7 @@ class torc
 		}
 	}
 
-	function torc($server, $mode, $nick, $ssl, $port)
+	function __construct()
 	{
 		$sStatus = "Status";
 		$this->output = new ncurse($this);
@@ -279,7 +279,14 @@ class torc
 
 		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client\n");
 
-		$this->username = 'torc';
+		$sMotd = file_get_contents("ircc.motd");
+		$aLines = explode("\n", $sMotd);
+		foreach ($aLines as $sLine)
+		{
+			$this->output->Output(BUFFER_STATUS, $sLine);
+		}
+
+		$this->username = 'ircc';
 		if(!empty($_ENV['LOGNAME']))
 		{
 			$this->username = $_ENV['LOGNAME'];
@@ -290,8 +297,6 @@ class torc
 		}
 
 		$this->nick = $this->username;
-		$this->output->Output(BUFFER_STATUS, "use the /SERVER command to connect to a server");
-		$this->output->Output(BUFFER_STATUS, "/QUIT to quit\n\n\n");
 
 		while (true)
 		{
@@ -311,44 +316,8 @@ class torc
 				$this->output->Output(BUFFER_CURRENT, $sMsg);
 		}
 	}
-	
-	function usage()
-	{
-		global $torc_ver;
-		$this->shutdown($torc_ver."
-
-usage: ircc [options]
-  available options:
-    -c kork        connect to server kork
-    -p 123             port to connect to
-    -s                 enable ssl connection
-    -n torx            use torx as nick
-
-");
-	}
 }
 
-//argument switching
-
-$mode = 'ncurses';
-$nick = -2;
-$ssl = false;
-$port = 6667;
-$server = -2;
-
-$argv = $_SERVER['argv'];
-$argc = $_SERVER['argc'];
-
-for($x = 1; $x < $argc; $x++)
-{
-	switch ($argv[$x])
-	{
-		default:
-			torc::usage();
-		break;
-	}
-}
-
-new torc($server, $mode, $nick, $ssl, $port);
+$oTorc = new torc();
 
 ?>
