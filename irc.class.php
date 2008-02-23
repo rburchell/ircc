@@ -314,7 +314,7 @@ class irc {
 	}
 
 	function procchanmode(){
-		$this->torc->output->Output($this->GetBufferID($this->ex[2]), 'chanmode '.$this->ex[2].' '.$this->ex[3].' '.$this->ex[4].' by '.$this->sender);
+		$this->torc->output->Output($this->GetBufferID($this->ex[2]), 'chanmode '.$this->ex[2].' '.$this->ex[3].' '.isset($this->ex[4]) ? this->ex[4] : "".' by '.$this->sender);
 	}
 
 	function procusermode(){

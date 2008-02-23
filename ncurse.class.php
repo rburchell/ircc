@@ -185,6 +185,18 @@ class ncurse
 		ncurses_wrefresh($this->ircoutput);
 	}
 
+	function SwitchToFirstActiveBuffer()
+	{
+		foreach ($this->aBuffers as $iBuffer => $oBuffer)
+		{
+			if ($oBuffer->active == true)
+			{
+				$this->DrawBuffer($iBuffer);
+				break;
+			}
+		}
+	}
+
 	function Output($iBuffer, $sBuf)
 	{
 		if ($iBuffer == -1)
@@ -220,7 +232,7 @@ class ncurse
 				switch (chr($c))
 				{
 					case 'a':
-						$this->torc->output->Output(BUFFER_CURRENT, "got alt+a!");
+						$this->SwitchToFirstActiveBuffer();
 						return;
 						break;
 				}
@@ -315,7 +327,7 @@ class ncurse
 		$aActive = array();
 		$iChans = 0;
 
-/*
+
 		// Draw a list of all windows. First, get two arrays of which are active and not.
 		foreach ($this->aBuffers as $iBuffer => $oBuffer)
 		{
@@ -335,28 +347,28 @@ class ncurse
 //				ncurses_move(0, strlen($sStatus)); // Move to the end of the status line first, since this is the first chan
 			if ($bShow == false)
 			{
-//				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
 				ncurses_waddstr($this->userinputw, $iActive);
-//				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 				$bShow = true;
 			}
 			else
 			{
 				ncurses_waddstr($this->userinputw, ",");
-//				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
 				ncurses_waddstr($this->userinputw, $iActive);
-//				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
+				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 			}
 		}
 //        ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
 //        ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
 //        ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
 
-*/
+
 		/*
 		 * Now append inactive windows. We don't make these stand out of course.
 		 */
-/*		foreach ($aInactive as $iInactive)
+		foreach ($aInactive as $iInactive)
 		{
 			if ($bShow == false)
 			{
@@ -371,7 +383,7 @@ class ncurse
 		}
 
 		ncurses_waddstr($this->userinputw, "]");
-*/
+
 
 //		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "] [Win: ";
 
