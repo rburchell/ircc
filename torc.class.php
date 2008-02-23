@@ -114,8 +114,8 @@ class torc
 
 	function shutdown($msg = "")
 	{
-		$this->output->quit();
 		$this->irc->squit($msg);
+		$this->output->quit();
 		die();
 	}
 
