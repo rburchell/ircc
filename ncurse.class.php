@@ -237,7 +237,7 @@ class ncurse
 			$this->aBuffers[$iBuffer]->active = true;
 	}
 
-	function getuserinput()
+	function GetUserInput()
 	{
 		static $bAlt = false;
 

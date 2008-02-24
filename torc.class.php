@@ -102,7 +102,7 @@ class torc
 	 */
 	public function callback_process_stdin()
 	{
-		if (($input = $this->output->getuserinput()))
+		if (($input = $this->output->GetUserInput()))
 		{
 			//we have a line of input
 			if(substr($input, 0, 1) == "/")
