@@ -155,9 +155,6 @@ class torc
 
 		while (true)
 		{
-			// XXX we shouldn't have to reset these constantly..
-			$this->output->SetDisplayVar("nick", $this->irc->usernick);
-
 			// poll() may hang a while until activity on stdin or IRC
 			$this->poll();
 

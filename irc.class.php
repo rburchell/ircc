@@ -157,6 +157,12 @@ class irc {
 		return 0;
 	}
 
+	function SetUserNick($sNick)
+	{
+		$this->usernick = $sNick;
+		$this->torc->output->SetDisplayVar("nick", $sNick);
+	}
+
 	function skick($chan, $victim, $reason = "Expelled")
 	{
 		$this->sendline('KICK '.trim($chan).' '.trim($victim).' :'.trim($target));
@@ -246,7 +252,7 @@ class irc {
 	{
 		// We want to update our nick IF: it's us changing nick, or if we haven't yet set a nick.
 		if ($this->usernick == $this->sender || empty($this->usernick))
-			$this->usernick = $this->ex[2];
+			$this->SetUserNick($this->ex[2]);
 
 		// XXX we need to output this on all buffers, or something.
 		$this->torc->output->Output(BUFFER_CURRENT, $this->sender.' is now known as '.$this->ex[2]);
@@ -322,7 +328,7 @@ class irc {
 		}
 
 		if ($this->ex[1] == "001")
-			$this->usernick = $this->ex[2];
+			$this->SetUserNick($this->ex[2]);
 
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
