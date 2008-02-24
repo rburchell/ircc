@@ -343,14 +343,29 @@ class irc
 	{
 		if ($this->ex[2][0] == "#")
 		{
-			file_put_contents("privlog", "ch is " . $this->ex[2] . " and buf id is " . $this->GetBufferID($this->ex[2]), FILE_APPEND);
-			$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->sender.'> '.$this->msg);
+			if ($this->msg[0] == chr(1))
+			{
+				// CTCP request..
+				$aCTCP = explode(" ", $this->msg);
+				$sCTCP = substr($aCTCP[0], 1);
+				$sParams = implode(" ", array_slice($aCTCP, 1));
+				$sParams = substr($sParams, 0, strlen($sParams) - 1);
+
+				if ($sCTCP == "ACTION")
+				{
+					$this->torc->output->Output($this->GetBufferID($this->ex[2]), "* " . $this->sender . " " . $sParams);
+				}
+			}
+			else
+			{
+				$this->torc->output->Output($this->GetBufferID($this->ex[2]), '<'.$this->sender.'> '.$this->msg);
+			}
 		}
 		else
 		{
 			if (preg_match('/^'.chr(1).'VERSION(.*?)'.chr(1).'$/i', $this->msg))
 			{
-				$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION reply from '.$this->sender.': '.substr($this->msg, 9, strlen($this->msg)-10));
+				$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION request from '.$this->sender);
 			}
 			else
 			{
