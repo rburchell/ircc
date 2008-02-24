@@ -117,9 +117,6 @@ class ncurse
 		 * Create our windows.
 		 */
 		$this->CreateWindows();
-
-		// Can't be done in InitialiseTerminal, as it relies on the window resource.
-		ncurses_keypad($this->userinputw, true); // enable keypad.
 	}
 
 	public function HandleResize($iSignal)
@@ -195,6 +192,7 @@ class ncurse
 		ncurses_refresh();
 		ncurses_wrefresh($this->ircoutput);
 		ncurses_wrefresh($this->userinputw);
+		ncurses_keypad($this->userinputw, true); // enable keypad.
 	}
 
 	/*
