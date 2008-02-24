@@ -195,10 +195,27 @@ class ncurse
 		for($x = 0; $x < $this->lines-2; $x++)
 		{
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
+		}
 
-			if (!empty($ex[$x])) // display this line if it's not empty
+		// Do line indents where necessary.
+		$aRender = array();
+
+		foreach ($ex as $sLine)
+		{
+			while (strlen($sLine) > $this->columns - 3)
 			{
-				ncurses_mvwaddstr($this->ircoutput, $x, 0, $ex[$x]);
+				$aRender[] = substr($sLine, 0, $this->columns - 6);
+				$sLine = '      ' . substr($sLine, $this->columns - 6);
+			}
+
+			$aRender[] = $sLine;
+		}
+
+		for ($x = count($aRender); $x != -1; $x--)
+		{
+			if (!empty($aRender[$x])) // display this line if it's not empty
+			{
+				ncurses_mvwaddstr($this->ircoutput, $x, 0, $aRender[$x]);
 			}
 		}
 
