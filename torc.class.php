@@ -4,7 +4,6 @@
  * ircc - a handy, portable console irc client
  *
  * Copyright (C) 2008 Robin Burchell <w00t@inspircd.org>
- * Copyright (C) 2003 rainman <rainman@darkwired.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +28,7 @@ error_reporting(E_ALL);
 ob_implicit_flush();
 
 
-class torc
+class Client
 {
 	public $irc;			/* server connection */
 	public $output;			/* ncurses stuff */
@@ -181,6 +180,6 @@ class torc
 	}
 }
 
-$oTorc = new torc();
-$oTorc->Run();
+$oClient = new Client();
+$oClient->Run();
 ?>
