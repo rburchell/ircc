@@ -39,8 +39,6 @@ class ncurse
 	public $iCurrentBuffer = 0;			// Which buffer the user is currently viewing.
 	public $torc;					// Reference to instance of main class
 
-//16:29 <&w00t> nano calls endwin(), doupdate(), reinitialises terminal, reenables cursor, then deletes and recreates (and repopulates) it's windows
-
 	public function __construct(&$torc)
 	{
 		// Set a signal handler to redraw on resize.
@@ -59,6 +57,12 @@ class ncurse
 		 * Create our windows.
 		 */
 		$this->CreateWindows();
+	}
+
+	public function __destruct()
+	{
+		ncurses_clear();
+		ncurses_end();
 	}
 
 	public function HandleResize($iSignal)
@@ -324,7 +328,10 @@ class ncurse
 		// And let caller know that nothing came out of the input buffer.
 		return false;
 	}
-	
+
+	/*
+	 * Sets a variable (such as e.g. "nick") that is used somewhere in the display.
+	 */
 	function SetDisplayVar($sKey, $sVal)
 	{
 		$this->aDisplayVars[$sKey] = $sVal;
@@ -401,12 +408,6 @@ class ncurse
 
 
 		ncurses_wrefresh($this->userinputw);
-	}
-
-	function quit()
-	{
-		ncurses_clear();
-		ncurses_end();
 	}
 }
 
