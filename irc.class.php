@@ -382,7 +382,7 @@ class irc
 	function sendline($data)
 	{
 		// sends a line to our irc
-		if(!@fwrite($this->sp, $data."\n"))
+		if(!@fwrite($this->sp, $data."\r\n"))
 		{
 			$this->torc->output->Output(BUFFER_CURRENT, 'Warning: error writing ['.$data.']');
 		}
