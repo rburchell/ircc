@@ -211,18 +211,9 @@ class irc {
 		}
 	}
 
-	function snames($target){
-		$this->sendline('NAMES '.$target);
-	}
-
 	function say($msg){
 		$this->sprivmsg($this->sCurrentTarget, trim($msg), false);
 		$this->torc->output->Output(BUFFER_CURRENT, '<'.$this->usernick.'> '.$msg);
-	}
-
-	function sversion($target){
-		$this->sprivmsg($target, chr(1).'VERSION'.chr(1), false);
-		$this->torc->output->Output(BUFFER_CURRENT, 'CTCP VERSION ' . $target);
 	}
 
 	function set($var, $val){

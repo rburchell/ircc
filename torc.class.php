@@ -164,105 +164,15 @@ class torc
 				$input = substr($input, 1);
 				// This is all ugly, really. Backwards compatibility.
 				$ex = parse_line($input);
-				$cmd = $ex[0];
+				$cmd = strtolower($ex[0]);
 				$msg = implode($ex, " ");
 				$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
 
-				switch(strtolower($cmd))
-				{
-					case 'w':
-						if ($this->output->IsBuffer($ex[1]))
-							$this->output->DrawBuffer($ex[1]);
-						else
-							$this->output->Output(BUFFER_CURRENT, "That is not a valid window.");
-						break;
-					case 'q':
-					case 'query':
-						// XXX find buffer by name and go to it
-						$this->output->AddBuffer($ex[1]);
-						break;
-					case 'server':
-					case 'connect':
-						if(!empty($ex[2]))
-							$port = (int)$ex[2];
-						else
-							$port = 6667;
-
-						if (empty($ex[3]))
-							$ex[3] = "";
-
-						$this->irc->connect($ex[1], $port, $ex[3], $this->username, "torc", "server", "torc - torx irc user", $this->nick);
-						break;
-					case 'quit':
-						$this->shutdown($msgf);
-						break;
-					case 'part':
-						$this->irc->spart($ex[1], $ex[2]);
-						break;
-					case 'mode':
-						$this->irc->smode($ex[1], $ex[2]);
-						break;
-					case 'topic':
-						$this->irc->stopic($ex[1], $msg);
-						break;
-					case 'notice':
-						$this->irc->snotice($ex[1], $msg);
-						break;
-					case 'names':
-						$this->irc->snames($ex[1]);
-						break;
-					case 'kick':
-						$this->irc->skick($ex[1], $ex[2], $msgh);
-						break;
-					case 'op':
-						$this->irc->smode($ex[1], "+o ".$ex[2]);
-						break;
-					case 'deop':
-						$this->irc->smode($ex[1], "-o ".$ex[2]);
-						break;
-					case 'ver':
-						$this->irc->sversion($ex[1]);
-						break;
-					case 'me':
-						$this->irc->saction($msgf);
-						break;
-					case 'quote':
-					case 'raw':
-						$this->irc->sendline($msgf);
-						break;
-					case 'say':
-						$this->output->Output(BUFFER_STATUS, $this->irc->getuser().trim($input)."\n");
-						$this->irc->say($input);
-						break;
-					case 'exec':
-						if($ex[1] == '-o')
-						{
-							$exout = explode("\n", trim(`$msg`));
-							foreach($exout as $sayout)
-							{
-								$this->irc->say($sayout);
-							}
-						}
-						else
-						{
-							$this->irc->addout(trim(`$msgf`));
-						}
-						break;
-					case 'eval':
-						eval($msgf);
-						break;
-					case 'setb':
-						$this->output->Output(BUFFER_STATUS, "setting ".$ex[1]." to ".(int)trim($msg)."\n");
-						$this->irc->set($ex[1], (int)trim($msg));
-						break;
-					case 'privmsg':
-					case 'msg':
-						$this->irc->sprivmsg($ex[1], $msg);
-						break;
-					default:
-						$this->irc->sendline($cmd." ".$msgf);
-						break;
-				}
+				// XXX this doesn't allow for aliases yet.
+				if (file_exists("commands/" . $cmd . ".command.inc.php"))
+					include("commands/" . $cmd . ".command.inc.php");
+				else
+					$this->irc->sendline($cmd." ".$msgf);
 			}
 			else
 			{
