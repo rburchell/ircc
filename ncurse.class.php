@@ -39,8 +39,8 @@ class Buffer
 		// XXX indentation should be done on draw, not on buffer add.
 		while (strlen($sBuf) > $this->ncurse->columns - 3)
 		{
-			$this->buf .= substr($sBuf, 0, $this->ncurse->columns) . "\n";
-			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns);
+			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
+			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
 		}
 
 
