@@ -66,8 +66,13 @@ class torc
 		/*
 		 * It's annoying to have to @suppress warnings on stream_select(), but PHP raises E_NOTICE if select
 		 * is interrupted by a signal etc, and I have no way of trapping that.
+		 *
+		 * Except, that in their infinite wisdom, not only have they created a nonsensical error on this condition
+		 * (think SIGWINCH in a console application, you idiots!), but it also is un-suppressable!
+		 *
+		 * The error handler will suppress it instead, but YUCK.
 		 */
-		$iStreams = @stream_select($aRead, $aWrite, $aExcept, 1);
+		$iStreams = stream_select($aRead, $aWrite, $aExcept, 1);
 
 		/*
 		 * If no streams have activity, there's no point in checking what callbacks to hit. Duh.

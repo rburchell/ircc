@@ -93,8 +93,15 @@ class Utils
 	// error handler function
 	static public function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
-		global $aErrors;
-		$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
+		file_put_contents("error.log", $errstr, FILE_APPEND);
+
+		// YUCK. See the main socket loop for why this is necessary.
+		$aMsg = explode(" ", $errstr);
+		if ($aMsg[0] != "stream_select():")
+		{
+			global $aErrors;
+			$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
+		}
 	}
 }
 ?>

@@ -16,6 +16,8 @@ define('NC_PAIR_IRCOUT',			1);					// Colour pair used for the IRC output window
 define('NC_PAIR_INPUT',				2);					// Colour pair used for the input window
 define('NC_PAIR_INPUT_ACTIVE',		3);					// Colour pair used for the input window, active window listing text.
 
+declare(ticks = 1);
+
 
 class Buffer
 {
@@ -95,28 +97,88 @@ class ncurse
 	public $iCurrentBuffer = 0;			// Which buffer the user is currently viewing.
 	public $torc;					// Reference to instance of main class
 
-	function ncurse(&$torc)
+//16:29 <&w00t> nano calls endwin(), doupdate(), reinitialises terminal, reenables cursor, then deletes and recreates (and repopulates) it's windows
+
+	public function __construct(&$torc)
 	{
+		// Set a signal handler to redraw on resize.
+		pcntl_signal(SIGWINCH, array($this, "HandleResize"));
+
 		$this->torc = $torc;
 		$this->stdin = fopen('php://stdin', 'r');
 		stream_set_blocking($this->stdin, 0); // disable blocking
 
+		/*
+		 * Initialise the terminal. We must do this before creating colour pairs.
+		 */
+		$this->InitialiseTerminal();
+
+		/*
+		 * Create our windows.
+		 */
+		$this->CreateWindows();
+
+		// Can't be done in InitialiseTerminal, as it relies on the window resource.
+		ncurses_keypad($this->userinputw, true); // enable keypad.
+	}
+
+	public function HandleResize($iSignal)
+	{
+		//$this->Output(BUFFER_CURRENT, "FFS RESIZE");
+		ncurses_end();
+		ncurses_doupdate();
+		$this->InitialiseTerminal();
+		$this->CreateWindows();
+		$this->DrawBuffer($this->iCurrentBuffer);
+		$this->setuserinput();
+	}
+
+	public function InitialiseTerminal()
+	{
 		$this->ncursesess = ncurses_init();
 		ncurses_noecho(); // turn off echo to screen
 		ncurses_start_color(); // initialise colour
 		//ncurses_cbreak(); // turn off buffering
+		ncurses_curs_set(0);
 
-		// Initialise the colour pairs that we'll use. First param is a define so we don't have to use
-		// magic numbers all through the app.
+		/*
+		 * Initialise the colour pairs that we'll use. First param is a define so we don't have to use
+		 * magic numbers all through the app.
+		 */
 		ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
 		ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
 		ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
+	}
 
-		ncurses_curs_set(0);
+	public function DeleteWindows()
+	{
+		ncurses_delwin($this->mainwin);
+		ncurses_delwin($this->ircoutput);
+		ncurses_delwin($this->userinputw);
+	}
+
+	public function CreateWindows()
+	{
+		$bResize = false;
+		// If this is set, then we've "been here before", and we are probably being called from resize, so
+		// we need to destroy our windows first, so as to not leak resources.
+		if ($this->mainwin)
+		{
+			$bResize = true;
+			$this->DeleteWindows();
+		}
 
 		$this->mainwin = ncurses_newwin(0, 0, 0, 0);
 
+		$oldlines = $this->lines;
+		$oldcol = $this->columns;
+
 		ncurses_getmaxyx(&$this->mainwin, $this->lines, $this->columns);
+
+		if ($bResize)
+		{
+			file_put_contents("resize.log", "Resized. Old lines/columns: " . $oldlines . "/" . $oldcol . " and new l/c " . $this->lines . "/" . $this->columns, FILE_APPEND);
+		}
 		
 		// Generate a blank line so we can write over the output
 		for ($x = 0; $x < $this->columns; $x++)
@@ -127,10 +189,8 @@ class ncurse
 		$this->ircoutput = ncurses_newwin($this->lines-2, $this->columns, 0, 0);
 		$this->userinputw = ncurses_newwin(2, $this->columns, $this->lines - 2, 0);
 
-		ncurses_keypad($this->userinputw, true); // enable keypad.
-
-		ncurses_wcolor_set($this->ircoutput, 1);
-		ncurses_wcolor_set($this->userinputw, 2);
+		ncurses_wcolor_set($this->ircoutput, NC_PAIR_IRCOUT);
+		ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 
 		ncurses_refresh();
 		ncurses_wrefresh($this->ircoutput);
@@ -242,7 +302,7 @@ class ncurse
 			if ($c == -1)
 				break;
 
-			//$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
+//			$this->torc->output->Output(BUFFER_CURRENT, "got " . $c);
 
 			/*
 			 * We do this in a seperate switch so we can unset meta combinations if they don't fit our demands easily.
