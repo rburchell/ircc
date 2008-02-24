@@ -211,6 +211,10 @@ class ncurse
 			$aRender[] = $sLine;
 		}
 
+		while (count($aRender) > $this->lines - 2) // XXX array_slice can probably make this more efficient
+			array_shift($aRender);
+
+
 		for ($x = count($aRender); $x != -1; $x--)
 		{
 			if (!empty($aRender[$x])) // display this line if it's not empty
