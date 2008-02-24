@@ -69,8 +69,6 @@ class Buffer
 		$aRet = array();
 		$iLines = 0;
 
-		file_put_contents("bufferdisplay", "displaying buffer\n", FILE_APPEND);
-
 		// Get each line at the start of the viewport (total lines - scroll), and append to array.
 		for ($x = count($this->aLines) - ($this->scroll + ($this->ncurse->lines - 2)); $iLines < ($this->ncurse->lines - 2); $x++)
 		{
@@ -85,26 +83,6 @@ class Buffer
 			}
 		}
 
-/*
-		for ($x = count($this->aLines) - $this->scroll; $x >= 0; $x--)
-		{
-			file_put_contents("bufferdisplay", "x is " . $x . "\n", FILE_APPEND);
-
-			if($iLinesLeft == 0)
-			{
-				$x = -1;
-			}
-			else
-			{
-				if(!empty($this->aLines[$x]))
-				{
-					file_put_contents("bufferdisplay", "and line is " . $this->aLines[$x] . "\n", FILE_APPEND);
-					$iLinesLeft--;
-					$aRet[] = &$this->aLines[$x];
-				}
-			}
-		}
-*/
 		return $aRet;
 	}
 

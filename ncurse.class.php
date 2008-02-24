@@ -195,21 +195,12 @@ class ncurse
 		for($x = 0; $x < $this->lines-2; $x++)
 		{
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
+
 			if (!empty($ex[$x])) // display this line if it's not empty
+			{
 				ncurses_mvwaddstr($this->ircoutput, $x, 0, $ex[$x]);
+			}
 		}
-
-/*
-		// XXX indentation should be done on draw, not on buffer add.
-		while (strlen($sBuf) > $this->ncurse->columns - 3)
-		{
-			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
-			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
-		}
-
-
-		$this->buf .= $sBuf . "\n";
-*/
 
 		ncurses_wrefresh($this->ircoutput);
 	}
@@ -231,7 +222,7 @@ class ncurse
 		if ($iBuffer == -1)
 			$iBuffer = $this->iCurrentBuffer;
 
-		$sBuf = date("[H:i] ") . $sBuf . "\n";
+		$sBuf = date("[H:i] ") . $sBuf;
 		$this->aBuffers[$iBuffer]->AddToBuffer($sBuf);
 
 		if ($this->iCurrentBuffer == $iBuffer)

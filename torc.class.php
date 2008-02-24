@@ -140,7 +140,7 @@ class torc
 		$this->output->AddBuffer($sStatus); // Create status buffer. ALWAYS at position 0.
 		$this->irc = new irc($this);
 
-		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client\n");
+		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client");
 
 		$sMotd = file_get_contents("ircc.motd");
 		$aLines = explode("\n", $sMotd);
