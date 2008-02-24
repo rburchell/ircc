@@ -369,7 +369,7 @@ class irc
 			}
 			else
 			{
-				$this->torc->output->Output(BUFFER_CURRENT, '('.$this->sender.') '.$this->msg);
+				$this->torc->output->Output($this->GetBufferID($this->sender), '('.$this->sender.') '.$this->msg);
 			}
 		}
 
