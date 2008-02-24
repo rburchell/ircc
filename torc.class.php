@@ -12,9 +12,9 @@
  * (at your option) any later version.
  */
 
-define('IRCC_VER', 'ircc-0.01');
-define('BUFFER_STATUS', 0);
-define('BUFFER_CURRENT', -1);
+define('IRCC_VER', 'ircc-0.01');	/* Self explanatory. */
+define('BUFFER_STATUS', 0);		/* The root buffer will always be 0, status. */
+define('BUFFER_CURRENT', -1);		/* Magic constant to indicate the current buffer. */
 
 require("ncurse.class.php");
 require("irc.class.php");
@@ -48,7 +48,7 @@ class torc
 	/*
 	 * Polls all file descriptors for activity and hits appropriate callbacks if activity has been detected.
 	 */
-	public function poll()
+	public function Poll()
 	{
 		/*
 		 * CAREFUL:
@@ -161,7 +161,7 @@ class torc
 		while (true)
 		{
 			// poll() may hang a while until activity on stdin or IRC
-			$this->poll();
+			$this->Poll();
 
 			// Update time display.
 			$this->output->setuserinput();
