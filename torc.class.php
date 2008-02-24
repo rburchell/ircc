@@ -33,30 +33,43 @@ class torc
 	public $irc;			/* server connection */
 	public $output;			/* ncurses stuff */
 
-	var $username, $nick;
-
-	function shutdown($msg = "")
+	/*
+	 * Initiates a shutdown of the client, sends QUIT to all connections, then shuts down ncurses, etc.
+	 */
+	public function shutdown($msg = "")
 	{
 		$this->irc->squit($msg);
 		$this->output->quit();
 		die();
 	}
 
-	function poll()
+	/*
+	 * Polls all file descriptors for activity and hits appropriate callbacks if activity has been detected.
+	 */
+	public function poll()
 	{
-		// Polls this->output->stdin and all IRC sockets for activity, initiating callbacks if necessary.
-		$aRead = array();
-		$aWrite = $aExcept = array(); // XXX we should eventually poll for write too.
+		/*
+		 * CAREFUL:
+		 *  Optimisers, note! This is something that catches a lot of people out.
+		 *  select() syscall modifies the arrays it is passed, so we MUST regenerate the array for each call.
+		 *  NOT doing this is suicide, and will give you hard to track down bugs/problems etc. (fds "disappearing" etc).
+		 */
+		$aRead = $aWrite = $aExcept = array(); // XXX we should eventually poll for write too.
 
 		$aRead[] = $this->output->stdin;
 
 		if ($this->irc->sp)
 			$aRead[] = $this->irc->sp;
 
-		// It's annoying to have to @suppress warnings on stream_select(), but PHP raises E_NOTICE if select
-		// is interrupted by a signal etc, and I have no way of trapping that.
+		/*
+		 * It's annoying to have to @suppress warnings on stream_select(), but PHP raises E_NOTICE if select
+		 * is interrupted by a signal etc, and I have no way of trapping that.
+		 */
 		$iStreams = @stream_select($aRead, $aWrite, $aExcept, 1);
 
+		/*
+		 * If no streams have activity, there's no point in checking what callbacks to hit. Duh.
+		 */
 		if ($iStreams == 0)
 			return;
 
@@ -75,8 +88,11 @@ class torc
 		}
 	}
 
-	// Callback which is hit whenever stdin is ready for read.
-	function callback_process_stdin()
+	/*
+	 * Callback to read and process stdin whenever there is input available.
+	 * XXX eventually this (and all other sockets) should be wrapped in a class with methods for callbacks.
+	 */
+	public function callback_process_stdin()
 	{
 		if (($input = $this->output->getuserinput()))
 		{
@@ -104,7 +120,11 @@ class torc
 		}
 	}
 
-	function __construct()
+	/*
+	 * ..it's a bird, ..it's a plane..
+	 * .. no, moron, it's a constructor.
+	 */
+	public function __construct()
 	{
 		$sStatus = "Status";
 		$this->output = new ncurse($this);
