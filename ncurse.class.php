@@ -88,9 +88,9 @@ class ncurse
 		 * Initialise the colour pairs that we'll use. First param is a define so we don't have to use
 		 * magic numbers all through the app.
 		 */
-		ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
-		ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
-		ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
+		ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
+		ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
+		ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLUE);
 	}
 
 	public function DeleteWindows()
