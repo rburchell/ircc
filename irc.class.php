@@ -23,8 +23,6 @@ class irc {
 	var $msg;						// this is everything after the : (reread each line)
 	var $autonick;					// if this is true we auto change nicks
 
-	var $sets;
-
 	var $chans = array();			// A lookup of channel name to buffer id
 	var $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
 
@@ -49,9 +47,6 @@ class irc {
 	{
 		$this->autonick = 1;
 		
-		$this->sets = array();
-		$this->sets['timestamp'] = true;
-
 		if($ssl)
 		{		// if we use ssl we must prefix our connect host with ssl://
 			$cntserver = 'ssl://'.$server;
@@ -214,10 +209,6 @@ class irc {
 	function say($msg){
 		$this->sprivmsg($this->sCurrentTarget, trim($msg), false);
 		$this->torc->output->Output(BUFFER_CURRENT, '<'.$this->usernick.'> '.$msg);
-	}
-
-	function set($var, $val){
-		$this->sets[$var] = $val;
 	}
 
 	function saction($msg){
