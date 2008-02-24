@@ -10,6 +10,12 @@
  * (at your option) any later version.
  */
 
+/*
+ * This is a kind of ugly hack.
+ * Error handler won't have an instance of the torc class (or might not), so we pop errors into here from our handler.
+ * Every second (to prevent flooding the fuck out of a user), an error will be popped off the array and displayed in the current buffer.
+ */
+$aErrors = array();
 
 /*
  * Provides various miscellaneous routines and functions.
@@ -82,6 +88,13 @@ class Utils
 		}
 
 		return $aRet;
+	}
+
+	// error handler function
+	static public function ErrorHandler($errno, $errstr, $errfile, $errline)
+	{
+		global $aErrors;
+		$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
 	}
 }
 ?>
