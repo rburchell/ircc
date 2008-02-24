@@ -141,6 +141,7 @@ class torc
 			$this->output->Output(BUFFER_STATUS, $sLine);
 		}
 
+/*
 		$this->username = 'ircc';
 		if(!empty($_ENV['LOGNAME']))
 		{
@@ -152,7 +153,11 @@ class torc
 		}
 
 		$this->nick = $this->username;
+*/
+	}
 
+	public function Run()
+	{
 		while (true)
 		{
 			// poll() may hang a while until activity on stdin or IRC
@@ -171,5 +176,5 @@ class torc
 }
 
 $oTorc = new torc();
-
+$oTorc->Run();
 ?>
