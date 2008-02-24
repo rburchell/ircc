@@ -13,7 +13,7 @@
 class Buffer
 {
 	public $topic;					// "topic" string.
-	public $buf;					// The contents of the window itself
+	public $aLines = array();			// The contents of the window
 	public $scroll = 0;				// How many lines we are scrolled (0 is none)
 	public $ncurse;					// Parent ncurses instance
 	public $active;					// True if there is unread data on this buffer
@@ -27,15 +27,14 @@ class Buffer
 
 	public function AddToBuffer(&$sBuf)
 	{
-		// XXX indentation should be done on draw, not on buffer add.
-		while (strlen($sBuf) > $this->ncurse->columns - 3)
-		{
-			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
-			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
-		}
+		$this->aLines[] = $sBuf;
 
-
-		$this->buf .= $sBuf . "\n";
+		// The following code will nuke lines out of memory after it gets big enough.
+		//while (count($this->aLines) > 10)
+		//{
+		//	// XXX I'm positive this could be done more efficiently with array_slice.
+		//	array_shift($this->aLines);
+		//}
 	}
 
 	public function &GetBuffer()
@@ -59,10 +58,54 @@ class Buffer
 	public function ScrollDown()
 	{
 		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
-		$ex = explode("\n", $this->buf);
 		$this->scroll = $this->scroll + $this->ncurse->lines;
-		if ($this->scroll > count($ex))
-			$this->scroll = count($ex);
+		if ($this->scroll > count($this->aLines))
+			$this->scroll = count($this->aLines);
+	}
+
+	/* Returns a displayable version of the buffer as an array */
+	public function Display()
+	{
+		$aRet = array();
+		$iLines = 0;
+
+		file_put_contents("bufferdisplay", "displaying buffer\n", FILE_APPEND);
+
+		// Get each line at the start of the viewport (total lines - scroll), and append to array.
+		for ($x = count($this->aLines) - ($this->scroll + ($this->ncurse->lines - 2)); $iLines < ($this->ncurse->lines - 2); $x++)
+		{
+			$iLines++;
+			if (isset($this->aLines[$x]))
+			{
+				$aRet[] = &$this->aLines[$x];
+			}
+			else
+			{
+				$aRet[] = "";
+			}
+		}
+
+/*
+		for ($x = count($this->aLines) - $this->scroll; $x >= 0; $x--)
+		{
+			file_put_contents("bufferdisplay", "x is " . $x . "\n", FILE_APPEND);
+
+			if($iLinesLeft == 0)
+			{
+				$x = -1;
+			}
+			else
+			{
+				if(!empty($this->aLines[$x]))
+				{
+					file_put_contents("bufferdisplay", "and line is " . $this->aLines[$x] . "\n", FILE_APPEND);
+					$iLinesLeft--;
+					$aRet[] = &$this->aLines[$x];
+				}
+			}
+		}
+*/
+		return $aRet;
 	}
 
 }

@@ -172,41 +172,44 @@ class ncurse
 	}
 
 	/*
-	 * "Switches" to a new buffer specified by unique ID and redraws it.
+	 * Returns a reference to the specified buffer.
 	 */
-	function DrawBuffer($iBuffer)
+	function &GetBuffer($iBuffer)
+	{
+		return $this->aBuffers[$iBuffer];
+	}
+
+	/*
+	 * Asks a buffer to display itself
+	 */
+	public function DrawBuffer($iBuffer)
 	{
 		$this->iCurrentBuffer = $iBuffer;
 		$this->torc->irc->sCurrentTarget = $this->aBuffers[$iBuffer]->sName;
 		$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
 		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
-		$ex = explode("\n", $this->aBuffers[$iBuffer]->GetBuffer());
+
+		$ex = $this->aBuffers[$iBuffer]->Display();
 
 		for($x = 0; $x < $this->lines-2; $x++)
 		{
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
+			if (!empty($ex[$x])) // display this line if it's not empty
+				ncurses_mvwaddstr($this->ircoutput, $x, 0, $ex[$x]);
 		}
 
-		$linetype = NULL;
-		$ll = 0;
-		$linesleft = $this->lines - 2;
-
-		for ($x = count($ex) - $this->aBuffers[$iBuffer]->scroll; $x >= 0; $x--)
+/*
+		// XXX indentation should be done on draw, not on buffer add.
+		while (strlen($sBuf) > $this->ncurse->columns - 3)
 		{
-			if($linesleft == 0)
-			{
-				$x = -1;
-			}
-			else
-			{
-				if(!empty($ex[$x]))
-				{
-					$linesleft--;
-					ncurses_mvwaddstr($this->ircoutput, $linesleft, 0, $ex[$x]);
-				}
-			}
+			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
+			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
 		}
+
+
+		$this->buf .= $sBuf . "\n";
+*/
 
 		ncurses_wrefresh($this->ircoutput);
 	}
