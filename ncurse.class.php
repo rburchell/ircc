@@ -18,64 +18,6 @@ define('NC_PAIR_INPUT_ACTIVE',		3);					// Colour pair used for the input window
 
 declare(ticks = 1);
 
-
-class Buffer
-{
-	var $topic;
-	var $buf;
-	var $scroll = 0;
-	var $ncurse;
-	var $active;					// fucking true if there is fucking shit to fucking show in this window.
-	var $sName;						// Window title. e.g. nick of the person you're in query with or channel name.
-
-	public function __construct(&$ncurse, &$sName)
-	{
-		$this->ncurse = $ncurse;
-		$this->sName = $sName;
-	}
-
-	public function AddToBuffer(&$sBuf)
-	{
-		// XXX indentation should be done on draw, not on buffer add.
-		while (strlen($sBuf) > $this->ncurse->columns - 3)
-		{
-			$this->buf .= substr($sBuf, 0, $this->ncurse->columns - 6) . "\n";
-			$sBuf = '      ' . substr($sBuf, $this->ncurse->columns - 6);
-		}
-
-
-		$this->buf .= $sBuf . "\n";
-	}
-
-	public function &GetBuffer()
-	{
-		return $this->buf;
-	}
-
-	/*
-	 * Scrolls this buffer up by a page
-	 */
-	public function ScrollUp()
-	{
-		$this->scroll = $this->scroll - $this->ncurse->lines;
-		if($this->scroll < 0)
-			$this->scroll = 0;
-	}
-
-	/*
-	 * Scrolls this buffer down by a page
-	 */
-	public function ScrollDown()
-	{
-		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
-		$ex = explode("\n", $this->buf);
-		$this->scroll = $this->scroll + $this->ncurse->lines;
-		if ($this->scroll > count($ex))
-			$this->scroll = count($ex);
-	}
-
-}
-
 class ncurse
 {
 	var $ncursesess;

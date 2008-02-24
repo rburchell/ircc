@@ -16,6 +16,7 @@ define('IRCC_VER', 'ircc-0.01');	/* Self explanatory. */
 define('BUFFER_STATUS', 0);		/* The root buffer will always be 0, status. */
 define('BUFFER_CURRENT', -1);		/* Magic constant to indicate the current buffer. */
 
+require("buffer.class.php");
 require("ncurse.class.php");
 require("irc.class.php");
 require("utils.class.php");
