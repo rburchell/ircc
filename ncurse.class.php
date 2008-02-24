@@ -190,6 +190,9 @@ class ncurse
 		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
 
+		/*
+		 * Blank the console.
+		 */
 		$ex = $this->aBuffers[$iBuffer]->Display();
 
 		for($x = 0; $x < $this->lines-2; $x++)
@@ -197,9 +200,12 @@ class ncurse
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
 		}
 
-		// Do line indents where necessary.
 		$aRender = array();
 
+		/*
+		 * Of course, the buffer only gave us the viewport contents in "raw" form.
+		 * We now need to split lines as necessary, so let's generate a new array of 'processed' output..
+		 */
 		foreach ($ex as $sLine)
 		{
 			while (strlen($sLine) > $this->columns - 3)
@@ -211,10 +217,16 @@ class ncurse
 			$aRender[] = $sLine;
 		}
 
+		/*
+		 * .. But it still needs to fit in the viewport, so nuke any extra lines after splitting off the top.
+		 */
 		while (count($aRender) > $this->lines - 2) // XXX array_slice can probably make this more efficient
 			array_shift($aRender);
 
 
+		/*
+		 * And display the processed lines to the user.
+		 */
 		for ($x = count($aRender); $x != -1; $x--)
 		{
 			if (!empty($aRender[$x])) // display this line if it's not empty
