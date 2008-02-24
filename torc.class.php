@@ -33,6 +33,8 @@ class torc
 	public $irc;			/* server connection */
 	public $output;			/* ncurses stuff */
 
+	private $nick;			/* stores nickname, passed on new connection creation */
+	private $username;		/* stores username, passed on new connection creation */
 	/*
 	 * Initiates a shutdown of the client, sends QUIT to all connections, then shuts down ncurses, etc.
 	 */
@@ -141,7 +143,6 @@ class torc
 			$this->output->Output(BUFFER_STATUS, $sLine);
 		}
 
-/*
 		$this->username = 'ircc';
 		if(!empty($_ENV['LOGNAME']))
 		{
@@ -153,7 +154,6 @@ class torc
 		}
 
 		$this->nick = $this->username;
-*/
 	}
 
 	public function Run()
