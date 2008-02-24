@@ -49,6 +49,29 @@ class Buffer
 	{
 		return $this->buf;
 	}
+
+	/*
+	 * Scrolls this buffer up by a page
+	 */
+	public function ScrollUp()
+	{
+		$this->scroll = $this->scroll - $this->ncurse->lines;
+		if($this->scroll < 0)
+			$this->scroll = 0;
+	}
+
+	/*
+	 * Scrolls this buffer down by a page
+	 */
+	public function ScrollDown()
+	{
+		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
+		$ex = explode("\n", $this->buf);
+		$this->scroll = $this->scroll + $this->ncurse->lines;
+		if ($this->scroll > count($ex))
+			$this->scroll = count($ex);
+	}
+
 }
 
 class ncurse
@@ -66,11 +89,11 @@ class ncurse
 	var $sendhis = array();
 	var $sendhispt;
 	var $sendhislu;
-	var $scrollfd = 0;
-	var $aDisplayVars = array();		// This contains information (like name etc) that are used when painting the GUI
-	var $aBuffers = array();			// Numerically indexed array of Buffer instances.
-	var $iCurrentBuffer = 0;
-	var $torc;							// Reference to instance of main class
+
+	public $aDisplayVars = array();			// This contains information (like name etc) that are used when painting the GUI
+	public $aBuffers = array();			// Numerically indexed array of Buffer instances.
+	public $iCurrentBuffer = 0;			// Which buffer the user is currently viewing.
+	public $torc;					// Reference to instance of main class
 
 	function ncurse(&$torc)
 	{
@@ -257,17 +280,12 @@ class ncurse
 					$this->setuserinput();
 					break;		
 				case NCURSES_KEY_NPAGE:
-					$this->scrollfd = $this->scrollfd - $this->lines;
-					if($this->scrollfd < 0)
-						$this->scrollfd = 0;
-					$this->buildircout($this->scrollfd);
+					$this->aBuffers[$this->iCurrentBuffer]->ScrollUp();
+					$this->DrawBuffer($this->iCurrentBuffer);
 					break;
 				case NCURSES_KEY_PPAGE:	
-					$ex = explode("\n", $this->ircout_content);
-					$this->scrollfd = $this->scrollfd + $this->lines;
-					if ($this->scrollfd > count($ex))
-						$this->scrollfd = count($ex);
-					$this->buildircout($this->scrollfd);
+					$this->aBuffers[$this->iCurrentBuffer]->ScrollDown();
+					$this->DrawBuffer($this->iCurrentBuffer);
 					break;
 				case NCURSES_KEY_UP:
 					if($this->sendhispt >= 0)
