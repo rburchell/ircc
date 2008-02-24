@@ -421,7 +421,6 @@ class ncurse
 		// Now generate out list. First of all, we want to draw only active windows. We also want them to stand out.
 		foreach ($aActive as $iActive)
 		{
-//				ncurses_move(0, strlen($sStatus)); // Move to the end of the status line first, since this is the first chan
 			if ($bShow == false)
 			{
 				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT_ACTIVE);
@@ -437,10 +436,6 @@ class ncurse
 				ncurses_wcolor_set($this->userinputw, NC_PAIR_INPUT);
 			}
 		}
-//        ncurses_init_pair(NC_PAIR_IRCOUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLUE);
-//        ncurses_init_pair(NC_PAIR_INPUT, NCURSES_COLOR_WHITE,NCURSES_COLOR_BLACK);
-//        ncurses_init_pair(NC_PAIR_INPUT_ACTIVE, NCURSES_COLOR_RED, NCURSES_COLOR_BLACK);
-
 
 		/*
 		 * Now append inactive windows. We don't make these stand out of course.
@@ -460,12 +455,6 @@ class ncurse
 		}
 
 		ncurses_waddstr($this->userinputw, "]");
-
-
-//		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "] [Win: ";
-
-//		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
-//		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->aDisplayVars['window'] . "] " . $this->userinputt . '_');

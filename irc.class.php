@@ -11,22 +11,23 @@
  * (at your option) any later version.
  */
 
-class irc {
-	var $sp; 						// the socket file pointer
-	var $output;					// everything that is ready to be sent to whoever called us
-	var $usernick;					// the nick of the user
+class irc
+{
+	public $sp; 				// the socket file pointer
+	public $output;				// everything that is ready to be sent to whoever called us
+	public $usernick;			// the nick of the user
 
-	var $line; 						// the line we read from the irc input
-	var $sender;					// the nick that sent this message
-									//		will be messed up if it's not a normal message but then it's not used
-	var $ex;						// the explode(' ', $line), we use this a lot so it's an attribute
-	var $msg;						// this is everything after the : (reread each line)
-	var $autonick;					// if this is true we auto change nicks
+	public $line; 				// the line we read from the irc input
+	public $sender;				// the nick that sent this message
+						// will be messed up if it's not a normal message but then it's not used
+	public $ex;				// the explode(' ', $line), we use this a lot so it's an attribute
+	public $msg;				// this is everything after the : (reread each line)
+	public $autonick;			// if this is true we auto change nicks
 
-	var $chans = array();			// A lookup of channel name to buffer id
-	var $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
+	public $chans = array();		// A lookup of channel name to buffer id
+	public $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
 
-	var $torc;
+	public $torc;
 
 	function irc(&$torc)
 	{
@@ -36,19 +37,20 @@ class irc {
 	function connect(
 		$server,				// (string) the server to connect to
 		$port,					// (int) the port to connect to
-		$ssl,						// (bool) wether this connection uses ssl
-		$username,			// (string) username send in USER command
-		$hostname,			// (string) hostname send in USER command
-		$servername,		// (string) servername send in USER command
-		$realname,			// (string) realname send in USER command
+		$ssl,					// (bool) wether this connection uses ssl
+		$username,				// (string) username send in USER command
+		$hostname,				// (string) hostname send in USER command
+		$servername,				// (string) servername send in USER command
+		$realname,				// (string) realname send in USER command
 		$nick,					// (string) nick to specify in connect NICK command
-		$pass = ''			// (string) optional password for server
+		$pass = ''				// (string) optional password for server
 	)
 	{
 		$this->autonick = 1;
 		
 		if($ssl)
-		{		// if we use ssl we must prefix our connect host with ssl://
+		{
+			// if we use ssl we must prefix our connect host with ssl://
 			$cntserver = 'ssl://'.$server;
 		}
 		else
@@ -93,7 +95,7 @@ class irc {
 	 */
 	function procline ()
 	{
-		$this->line .= fgets($this->sp);		// this should ONLY be called by procline()	
+		$this->line .= fgets($this->sp);
 
 		if(substr($this->line, -1) != "\n")
 		{
@@ -173,7 +175,8 @@ class irc {
 		$this->sendline('MODE '.trim($target).' '.trim($mode));
 	}
 
-	function spart($chan, $reason = 'Parting'){
+	function spart($chan, $reason = 'Parting')
+	{
 		$this->sendline('PART '.trim($chan).' :'.trim($reason));
 		$this->torc->output->DeleteBuffer($this->chans[$chan]);
 		unset($this->chans[$chan]);
