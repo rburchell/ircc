@@ -24,6 +24,7 @@ define('BUFFER_CURRENT', -1);
 
 require("ncurse.class.php");
 require("irc.class.php");
+require("utils.class.php");
 
 /*
  * This is a kind of ugly hack.
@@ -39,77 +40,11 @@ function ErrorHandler($errno, $errstr, $errfile, $errline)
 	$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
 }
 
-/*
- * Returns an array of:
- *  prefix
- *  command
- *  params
- * This obeys IRC line format, i.e.
- *  :w00t PRIVMSG foo :bar moo cow
- * gives
- * [0]: w00t
- * [1]: PRIVMSG
- * [2]: foo
- * [3]: bar moo cow
- *
- * On the other hand,
- * msg moo cow
- * will return:
- * [0]: ""
- * [1]: msg
- * [2]: moo
- * [3]: cow
- *
- * Passing malformed lines isn't a good idea.
- */
-function parse_line($sLine)
-{
-	$i = 0;				// where in the array we're up to
-	$j = 0;				// which pos in the original array should be treated as a command
-
-	$aRet = array();
-	$aParm = explode(" ", $sLine);
-
-	if ($aParm[0][0] == ":")
-	{
-		// We have a prefix.
-		$aRet[0] = substr($aParm[0], 1);
-		$i = 1;
-		$j = 1;
-	}
-	else
-	{
-		// No prefix.
-		$aRet[0] = "";
-	}
-
-	for (; $i < count($aParm); $i++)
-	{
-		if ($i == $j)
-			$aParm[$i] = strtoupper($aParm[$i]); // uppercase commands
-
-		if ($aParm[$i][0] == ":")
-		{
-			// Strip :
-			$aParm[$i] = substr($aParm[$i], 1);
-
-			// Merge all further params
-			$aRet[$i] = implode(" ", array_slice($aParm, $i));
-			break; // and ignore everything else.
-		}
-		else
-		{
-			// It's a single param.
-			$aRet[$i] = $aParm[$i];
-		}
-	}
-
-	return $aRet;
-}
-
 class torc
 {
-	var $irc, $output;
+	public $irc;			/* server connection */
+	public $output;			/* ncurses stuff */
+
 	var $username, $nick;
 
 	function shutdown($msg = "")
@@ -163,7 +98,7 @@ class torc
 				// Tear off /
 				$input = substr($input, 1);
 				// This is all ugly, really. Backwards compatibility.
-				$ex = parse_line($input);
+				$ex = Utils::ParseLine($input);
 				$cmd = strtolower($ex[0]);
 				$msg = implode($ex, " ");
 				$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.

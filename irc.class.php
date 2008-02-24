@@ -102,7 +102,7 @@ class irc {
 
 		// This is all ugly, really. Backwards compatibility.
 		$this->line = trim($this->line);
-		$this->ex = parse_line($this->line);
+		$this->ex = Utils::ParseLine($this->line);
 		$this->line = "";
 		$this->msg = $this->ex[count($this->ex) - 1];
 		$this->sender = explode("!", $this->ex[0]);
