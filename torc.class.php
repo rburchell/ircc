@@ -19,6 +19,7 @@ require("src/buffer.class.php");		/* Buffer manipulation class. Used mostly insi
 require("src/ncurse.class.php");		/* Display class. Used to manipulate interface stuff. */
 require("src/irc.class.php");		/* IRC class. Interfaces with IRC. */
 require("src/utils.class.php");		/* Utility functions used throughout the client. */
+require("src/config.class.php");	/* Configuration class. Used to set/get config variables for stuff and save/load it automagically. */
 
 
 // Set up.

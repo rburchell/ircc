@@ -204,7 +204,13 @@ class ncurse
 			}
 			else
 			{
-				$sLine = date("[H:i] ", $oLine->iTime) . $oLine->sLine; // XXX todo timestamping
+				$sTimestamp = $this->torc->Config->timestamp;
+
+				if ($sTimestamp)
+					$sLine = date($sTimestamp, $oLine->iTime) . " " . $oLine->sLine;
+				else
+					$sLine = $oLine->sLine;
+
 				$split = Utils::SplitLine($sLine, $this->columns);
 				$aRender = array_merge($aRender, $split);
 			}

@@ -13,9 +13,11 @@ class Client
 {
 	public $irc;			/* server connection */
 	public $output;			/* ncurses stuff */
+	public $Config;			/* Instance of configuration class. */
 
 	private $nick;			/* stores nickname, passed on new connection creation */
 	private $username;		/* stores username, passed on new connection creation */
+
 	/*
 	 * Initiates a shutdown of the client, sends QUIT to all connections, then shuts down ncurses, etc.
 	 */
@@ -119,6 +121,7 @@ class Client
 		$this->output->SetDisplayVar("nick", ""); // Bit of a hack. Stops the AddBuffer below exploding things.
 		$this->output->AddBuffer($sStatus); // Create status buffer. ALWAYS at position 0.
 		$this->irc = new irc($this);
+		$this->Config = new Configuration($this);
 
 		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client");
 
