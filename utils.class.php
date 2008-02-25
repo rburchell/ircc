@@ -102,5 +102,33 @@ class Utils
 			$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
 		}
 	}
+
+	// Split the line into smaller parts so it fits into the window, returns array of lines
+	static public function SplitLine($line, $columns)
+	{
+		$padding = 6;
+		$pad_str = str_repeat(' ', $padding);
+
+		// If it fits already, just return it as is
+		if (strlen($line) <= $columns)
+			return array($line);
+
+		$ret = array();
+
+		// First line is $columns long, break at word boundary
+		$tmp = wordwrap($line, $columns, "\n", true);
+		$tmp = explode("\n", $tmp);
+
+		// Now get this first line
+		$ret[] = array_shift($tmp);
+
+		// And get the stuff which didn't fit on this first line
+		$line = $pad_str.implode(' ', $tmp);
+
+		// Every other line is padded by $padding spaces to the right
+		$split = wordwrap($line, $columns - $padding, "\n".$pad_str, true);
+		$split = explode("\n", $split);
+		return array_merge($ret, $split);
+	}
 }
 ?>

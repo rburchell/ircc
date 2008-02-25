@@ -198,13 +198,8 @@ class ncurse
 		 */
 		foreach ($ex as $sLine)
 		{
-			while (strlen($sLine) > $this->columns - 3)
-			{
-				$aRender[] = substr($sLine, 0, $this->columns - 6);
-				$sLine = '      ' . substr($sLine, $this->columns - 6);
-			}
-
-			$aRender[] = $sLine;
+			$split = Utils::SplitLine($sLine, $this->columns);
+			$aRender = array_merge($aRender, $split);
 		}
 
 		/*
