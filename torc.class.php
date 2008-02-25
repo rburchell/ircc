@@ -14,11 +14,11 @@ define('IRCC_VER', 'ircc-0.01');	/* Self explanatory. */
 define('BUFFER_STATUS', 0);		/* The root buffer will always be 0, status. */
 define('BUFFER_CURRENT', -1);		/* Magic constant to indicate the current buffer. */
 
-require("client.class.php");		/* Main client class. Contains socket loop, instances of child classes, etc. */
-require("buffer.class.php");		/* Buffer manipulation class. Used mostly inside display class. */
-require("ncurse.class.php");		/* Display class. Used to manipulate interface stuff. */
-require("irc.class.php");		/* IRC class. Interfaces with IRC. */
-require("utils.class.php");		/* Utility functions used throughout the client. */
+require("src/client.class.php");		/* Main client class. Contains socket loop, instances of child classes, etc. */
+require("src/buffer.class.php");		/* Buffer manipulation class. Used mostly inside display class. */
+require("src/ncurse.class.php");		/* Display class. Used to manipulate interface stuff. */
+require("src/irc.class.php");		/* IRC class. Interfaces with IRC. */
+require("src/utils.class.php");		/* Utility functions used throughout the client. */
 
 
 // Set up.

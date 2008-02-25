@@ -96,7 +96,7 @@ class Client
 				$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
 
 				// XXX this doesn't allow for aliases yet.
-				if (file_exists("commands/" . $cmd . ".command.inc.php"))
+				if (file_exists("./src/commands/" . $cmd . ".command.inc.php"))
 					include("commands/" . $cmd . ".command.inc.php");
 				else
 					$this->irc->sendline($cmd." ".$msgf);
