@@ -1,0 +1,14 @@
+/SET values
+-----------
+
+1. Introduction
+This file documents the possible settings for /set values and what they do.
+Of course, additional /set keys may be used by third party code.
+None of these will be documented here.
+
+---
+
+/set timestamp_format timestamp format here
+This value sets how timestamps are to be formatted.
+For reference on possible format, see the PHP manual: http://uk3.php.net/date
+(an example might be [h:m:s] for output like [22:10:36]).

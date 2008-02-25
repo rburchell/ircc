@@ -204,7 +204,7 @@ class ncurse
 			}
 			else
 			{
-				$sTimestamp = $this->torc->Config->timestamp;
+				$sTimestamp = $this->torc->Config->timestamp_format;
 
 				if ($sTimestamp)
 					$sLine = date($sTimestamp, $oLine->iTime) . " " . $oLine->sLine;
