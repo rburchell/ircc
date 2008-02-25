@@ -141,7 +141,7 @@ class ncurse
 		{
 			if (!isset($this->aBuffers[$i]))
 			{
-				$this->aBuffers[$i] = new Buffer($this, $sName);
+				$this->aBuffers[$i] = new Buffer($this->torc, $sName);
 				return $i;
 			}
 		}

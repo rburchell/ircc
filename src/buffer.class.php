@@ -30,13 +30,13 @@ class Buffer
 	public $topic;					// "topic" string.
 	public $aLines = array();			// The contents of the window
 	public $scroll = 0;				// How many lines we are scrolled (0 is none)
-	public $ncurse;					// Parent ncurses instance
+	public $oClient;					// Parent instance
 	public $active;					// True if there is unread data on this buffer
 	public $sName;					// Window title. e.g. nick of the person you're in query with or channel name.
 
-	public function __construct(&$ncurse, &$sName)
+	public function __construct(&$oClient, &$sName)
 	{
-		$this->ncurse = $ncurse;
+		$this->oClient = $oClient;
 		$this->sName = $sName;
 	}
 
@@ -62,7 +62,10 @@ class Buffer
 	 */
 	public function ScrollUp()
 	{
-		$this->scroll = $this->scroll - (($this->ncurse->lines / 3) * 2);
+		$fScrollModifier = $this->oClient->Config->buffer_scroll;
+		if (!$fScrollModifier)
+			$fScrollModifier = 0.5;
+		$this->scroll = $this->scroll - ($this->oClient->output->lines * $fScrollModifier);
 		if($this->scroll < 0)
 			$this->scroll = 0;
 	}
@@ -73,7 +76,10 @@ class Buffer
 	public function ScrollDown()
 	{
 		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
-		$this->scroll = $this->scroll + (($this->ncurse->lines / 3) * 2);
+		$fScrollModifier = $this->oClient->Config->buffer_scroll;
+		if (!$fScrollModifier)
+			$fScrollModifier = 0.5;
+		$this->scroll = $this->scroll + ($this->oClient->output->lines * $fScrollModifier);
 		if ($this->scroll > count($this->aLines))
 			$this->scroll = count($this->aLines);
 	}
@@ -85,7 +91,7 @@ class Buffer
 		$iLines = 0;
 
 		// Get each line at the start of the viewport (total lines - scroll), and append to array.
-		for ($x = count($this->aLines) - ($this->scroll + ($this->ncurse->lines - 2)); $iLines < ($this->ncurse->lines - 2); $x++)
+		for ($x = count($this->aLines) - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++)
 		{
 			$iLines++;
 			if (isset($this->aLines[$x]))
