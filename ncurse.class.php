@@ -102,27 +102,17 @@ class ncurse
 
 	public function CreateWindows()
 	{
-		$bResize = false;
 		// If this is set, then we've "been here before", and we are probably being called from resize, so
 		// we need to destroy our windows first, so as to not leak resources.
 		if ($this->mainwin)
 		{
-			$bResize = true;
 			$this->DeleteWindows();
 		}
 
 		$this->mainwin = ncurses_newwin(0, 0, 0, 0);
-
-		$oldlines = $this->lines;
-		$oldcol = $this->columns;
-
 		ncurses_getmaxyx(&$this->mainwin, $this->lines, $this->columns);
 
-		if ($bResize)
-		{
-			file_put_contents("resize.log", "Resized. Old lines/columns: " . $oldlines . "/" . $oldcol . " and new l/c " . $this->lines . "/" . $this->columns, FILE_APPEND);
-		}
-		
+	
 		// Generate a blank line so we can write over the output
 		for ($x = 0; $x < $this->columns; $x++)
 		{
