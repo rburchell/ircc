@@ -58,22 +58,22 @@ class Buffer
 	}
 
 	/*
-	 * Scrolls this buffer up by a page
+	 * Scrolls this buffer up by 2/3 of a page
 	 */
 	public function ScrollUp()
 	{
-		$this->scroll = $this->scroll - $this->ncurse->lines;
+		$this->scroll = $this->scroll - (($this->ncurse->lines / 3) * 2);
 		if($this->scroll < 0)
 			$this->scroll = 0;
 	}
 
 	/*
-	 * Scrolls this buffer down by a page
+	 * Scrolls this buffer down by 2/3 of a page
 	 */
 	public function ScrollDown()
 	{
 		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
-		$this->scroll = $this->scroll + $this->ncurse->lines;
+		$this->scroll = $this->scroll + (($this->ncurse->lines / 3) * 2);
 		if ($this->scroll > count($this->aLines))
 			$this->scroll = count($this->aLines);
 	}
