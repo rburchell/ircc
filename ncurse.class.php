@@ -255,6 +255,14 @@ class ncurse
 		if ($iBuffer == -1)
 			$iBuffer = $this->iCurrentBuffer;
 
+		if (!isset($this->aBuffers[$iBuffer]))
+		{
+			// XXX use trigger_error()
+			global $aErrors;
+			$aErrors[] = "Oops: tried to add " . $sBuf . " to " . $iBuffer . " which doesn't seem to exist";
+			return;
+		}
+
 		$sBuf = date("[H:i] ") . $sBuf;
 		$this->aBuffers[$iBuffer]->AddToBuffer($sBuf);
 

@@ -178,8 +178,6 @@ class irc
 	function spart($chan, $reason = 'Parting')
 	{
 		$this->sendline('PART '.trim($chan).' :'.trim($reason));
-		$this->torc->output->DeleteBuffer($this->chans[$chan]);
-		unset($this->chans[$chan]);
 	}
 
 	function squit($reason)
@@ -274,6 +272,14 @@ class irc
 	function procchanpart()
 	{
 		$this->torc->output->Output($this->GetBufferID($this->ex[2]), $this->sender.' has left channel '.$this->ex[2].': '.$this->msg);
+
+		if ($this->sender == $this->usernick)
+		{
+			// XXX do we want to do this?
+			$this->torc->output->DrawBuffer(BUFFER_STATUS);
+			$this->torc->output->DeleteBuffer($this->chans[$this->ex[2]]);
+			unset($this->chans[$this->ex[2]]);
+		}
 	}
 
 	function procchanjoin()
