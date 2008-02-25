@@ -122,7 +122,7 @@ class Client
 
 		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client");
 
-		$sMotd = file_get_contents("ircc.motd");
+		$sMotd = file_get_contents("motd.txt");
 		$aLines = explode("\n", $sMotd);
 		foreach ($aLines as $sLine)
 		{
