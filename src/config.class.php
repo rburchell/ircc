@@ -27,7 +27,8 @@ class Configuration
 
 	public function LoadConfig()
 	{
-		eval(file_get_contents("settings.ini"));
+		if (file_exists("settings.ini"))
+			eval(file_get_contents("settings.ini"));
 	}
 
 	public function SaveConfig()
