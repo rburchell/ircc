@@ -27,15 +27,18 @@ class Configuration
 
 	public function LoadConfig()
 	{
+		eval(file_get_contents("settings.ini"));
 	}
 
 	public function SaveConfig()
 	{
+		file_put_contents("settings.ini", '$this->aConfig = ' . var_export($this->aConfig, true) . ';');
 	}
 
 	public function __set($sKey, $vValue)
 	{
 		$this->aConfig[$sKey] = $vValue;
+		$this->SaveConfig();
 	}
 
 	public function __get($sKey)
