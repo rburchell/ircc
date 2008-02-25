@@ -80,8 +80,8 @@ class Buffer
 		if (!$fScrollModifier)
 			$fScrollModifier = 0.5;
 		$this->scroll = $this->scroll + ($this->oClient->output->lines * $fScrollModifier);
-		if ($this->scroll > count($this->aLines))
-			$this->scroll = count($this->aLines);
+		if ($this->scroll > count($this->aLines) - 1)
+			$this->scroll = count($this->aLines) - 1;
 	}
 
 	/* Returns a displayable version of the buffer as an array */
