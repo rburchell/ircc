@@ -196,10 +196,18 @@ class ncurse
 		 * Of course, the buffer only gave us the viewport contents in "raw" form.
 		 * We now need to split lines as necessary, so let's generate a new array of 'processed' output..
 		 */
-		foreach ($ex as $sLine)
+		foreach ($ex as $oLine)
 		{
-			$split = Utils::SplitLine($sLine, $this->columns);
-			$aRender = array_merge($aRender, $split);
+			if ($oLine == null)
+			{
+				$aRender[] = "";
+			}
+			else
+			{
+				$sLine = date("[H:i] ", $oLine->iTime) . $oLine->sLine; // XXX todo timestamping
+				$split = Utils::SplitLine($sLine, $this->columns);
+				$aRender = array_merge($aRender, $split);
+			}
 		}
 
 		/*
@@ -248,7 +256,7 @@ class ncurse
 			return;
 		}
 
-		$sBuf = date("[H:i] ") . $sBuf;
+		//$sBuf = date("[H:i] ") . $sBuf;
 		$this->aBuffers[$iBuffer]->AddToBuffer($sBuf);
 
 		if ($this->iCurrentBuffer == $iBuffer)

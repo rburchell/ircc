@@ -9,6 +9,22 @@
  * the Free Software Foundation; version 2 of the License.
  */
 
+
+class BufferLine
+{
+	public $iTime;					// Epoch TS of when this line was created
+	public $sLine;					// The line itself
+
+	public function __construct(&$sLine, $iTime = "")
+	{
+		if (empty($iTime))
+			$iTime = time();
+
+		$this->iTime = $iTime;
+		$this->sLine = $sLine;
+	}
+}
+
 class Buffer
 {
 	public $topic;					// "topic" string.
@@ -26,7 +42,7 @@ class Buffer
 
 	public function AddToBuffer(&$sBuf)
 	{
-		$this->aLines[] = $sBuf;
+		$this->aLines[] = new BufferLine($sBuf);
 
 		// The following code will nuke lines out of memory after it gets big enough.
 		//while (count($this->aLines) > 10)
@@ -78,7 +94,7 @@ class Buffer
 			}
 			else
 			{
-				$aRet[] = "";
+				$aRet[] = null;
 			}
 		}
 
