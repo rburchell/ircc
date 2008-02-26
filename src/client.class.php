@@ -144,6 +144,17 @@ class Client
 		}
 
 		$this->nick = $this->username;
+
+		// Process autoconnects
+		$aAutoconnect = $this->Config->autoconnect_servers;
+		if ($aAutoconnect)
+		{
+			foreach ($aAutoconnect as $aServer)
+			{
+				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $aServer['name']); 
+				$this->irc->connect($aServer['name'], 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
+			}
+		}
 	}
 
 	public function Run()
