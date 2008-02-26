@@ -35,6 +35,11 @@ class irc
 		$this->torc = $torc;
 	}
 
+	public function __toString()
+	{
+		return "IRC";
+	}
+
 	function connect(
 		$server,				// (string) the server to connect to
 		$port,					// (int) the port to connect to

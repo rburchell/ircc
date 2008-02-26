@@ -93,20 +93,19 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 
 	public function DeleteConnection(&$oConnection)
 	{
-		if ($this->IRC == $oConnection)
-		{
-			// XXX we should probably try "guess" an active connection rather than setting null, but oh well.
-			$this->IRC = null;
-		}
-
 		foreach ($this->aServers as $iIndex => $oServer)
 		{
-			if ($oServer == $oConnection)
+			if ($oServer === $oConnection)
 			{
 				$oServer = null;
-				unset($aServers[$iIndex]);
+				unset($this->aServers[$iIndex]);
 				break;
 			}
+		}
+
+		if ($this->IRC === $oConnection)
+		{
+			$this->IRC = $this->GetNextConnection();
 		}
 	}
 
