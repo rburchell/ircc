@@ -180,6 +180,15 @@ class ncurse
 		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
 
+		if ($this->aBuffers[$iBuffer]->scroll != 0)
+		{
+			$this->SetDisplayVar("scrolled", true);
+		}
+		else
+		{
+			$this->SetDisplayVar("scrolled", false);
+		}
+
 		/*
 		 * Blank the console.
 		 */
@@ -373,10 +382,18 @@ class ncurse
 
 	function setuserinput()
 	{
-		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "] [Win: ";
+		$sStatus = date("[H:i:s] ") . "[" . $this->aDisplayVars['nick'] . "]";
 
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 0, 0, $sStatus);
+
+		if ($this->aDisplayVars['scrolled'])
+		{
+			ncurses_waddstr($this->userinputw, " (scrolled)");
+		}
+
+		ncurses_waddstr($this->userinputw, " [Win: ");
+
 
 		/* Now we need to draw states for our various windows. */
 		$bShow = false;

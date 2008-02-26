@@ -119,6 +119,7 @@ class Client
 		$sStatus = "Status";
 		$this->output = new ncurse($this);
 		$this->output->SetDisplayVar("nick", ""); // Bit of a hack. Stops the AddBuffer below exploding things.
+		$this->output->SetDisplayVar("scrolled", false); // XXX move these to output constructor
 		$this->output->AddBuffer($sStatus); // Create status buffer. ALWAYS at position 0.
 		$this->irc = new irc($this);
 		$this->Config = new Configuration($this);
