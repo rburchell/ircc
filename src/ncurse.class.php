@@ -334,6 +334,8 @@ class ncurse
 
 			switch ($c)
 			{
+				case KEY_RESIZE:
+					break; // Eat this. We don't want resizing of window to add loads of crap to the input.
 				case 27:
 					// Alt modifier.
 					$bAlt = true;
