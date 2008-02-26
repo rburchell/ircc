@@ -13,8 +13,4 @@ if ($this->IRC)
 	$this->DeleteConnection($this->IRC);
 	
 }
-else
-{
-	$this->output->Output(BUFFER_CURRENT, "Not connected");
-}
 ?>

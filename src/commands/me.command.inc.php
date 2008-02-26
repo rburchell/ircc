@@ -1,3 +1,4 @@
 <?php
-$this->irc->saction($msgf);
+if ($this->IRC)
+	$this->IRC->saction($msgf);
 ?>

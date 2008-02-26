@@ -1,3 +1,4 @@
 <?php
-$this->IRC->smode($ex[1], $ex[2]);
+if ($this->IRC)
+	$this->IRC->smode($ex[1], $ex[2]);
 ?>

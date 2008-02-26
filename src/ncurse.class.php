@@ -190,7 +190,16 @@ class ncurse
 			}
 		}
 
-		$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
+		if ($iBuffer == 0 && $this->torc->IRC)
+		{
+			// Status window, special case. Show IRC server if set, else just status
+			$this->SetDisplayVar("window", $this->torc->IRC->sServerName);
+		}
+		else
+		{
+			$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
+		}
+
 		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
 
