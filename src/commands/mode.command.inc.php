@@ -1,3 +1,3 @@
 <?php
-$this->irc->smode($ex[1], $ex[2]);
+$this->IRC->smode($ex[1], $ex[2]);
 ?>
