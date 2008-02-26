@@ -1,3 +1,4 @@
 <?php
-$this->irc->sendline($msgf);
+if ($this->IRC)
+	$this->IRC->sendline($msgf);
 ?>

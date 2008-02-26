@@ -1,3 +1,4 @@
 <?php
-$this->irc->snotice($ex[1], $msg);
+if ($this->IRC)
+	$this->IRC->snotice($ex[1], $msg);
 ?>

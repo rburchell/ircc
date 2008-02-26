@@ -1,6 +1,7 @@
 <?php
-if (!isset($ex[2]))
-	$this->irc->spart($ex[1]);
-else
-	$this->irc->spart($ex[1], $ex[2]);
+if ($this->IRC)
+	if (!isset($ex[2]))
+		$this->IRC->spart($ex[1]);
+	else
+		$this->IRC->spart($ex[1], $ex[2]);
 ?>
