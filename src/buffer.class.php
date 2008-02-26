@@ -29,6 +29,7 @@ class Buffer
 {
 	public $topic;					// "topic" string.
 	public $aLines = array();			// The contents of the window
+	public $iLines = 0;				// Count of total lines in the buffer
 	public $scroll = 0;				// How many lines we are scrolled (0 is none)
 	public $oClient;					// Parent instance
 	public $active;					// True if there is unread data on this buffer
@@ -43,6 +44,10 @@ class Buffer
 	public function AddToBuffer(&$sBuf)
 	{
 		$this->aLines[] = new BufferLine($sBuf);
+		$this->iLines++;
+
+		if ($this->scroll > 0)
+			$this->scroll++; // we want to keep scrolled up by the right amount of lines =)
 
 		// The following code will nuke lines out of memory after it gets big enough.
 		//while (count($this->aLines) > 10)
@@ -80,8 +85,8 @@ class Buffer
 		if (!$fScrollModifier)
 			$fScrollModifier = 0.5;
 		$this->scroll = $this->scroll + ($this->oClient->output->lines * $fScrollModifier);
-		if ($this->scroll > count($this->aLines) - 1)
-			$this->scroll = count($this->aLines) - 1;
+		if ($this->scroll > $this->iLines - 1)
+			$this->scroll = $this->iLines - 1;
 	}
 
 	/* Returns a displayable version of the buffer as an array */
@@ -91,7 +96,7 @@ class Buffer
 		$iLines = 0;
 
 		// Get each line at the start of the viewport (total lines - scroll), and append to array.
-		for ($x = count($this->aLines) - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++)
+		for ($x = $this->iLines - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++)
 		{
 			$iLines++;
 			if (isset($this->aLines[$x]))
