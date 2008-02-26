@@ -32,12 +32,14 @@ class Buffer
 	public $iLines = 0;				// Count of total lines in the buffer
 	public $scroll = 0;				// How many lines we are scrolled (0 is none)
 	public $oClient;					// Parent instance
+	public $oServer;					// The parent server instance that owns this buffer
 	public $active;					// True if there is unread data on this buffer
 	public $sName;					// Window title. e.g. nick of the person you're in query with or channel name.
 
-	public function __construct(&$oClient, &$sName)
+	public function __construct(&$oClient, &$oServer, &$sName)
 	{
 		$this->oClient = $oClient;
+		$this->oServer = $oServer;
 		$this->sName = $sName;
 	}
 

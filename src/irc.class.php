@@ -26,6 +26,7 @@ class irc
 
 	public $chans = array();		// A lookup of channel name to buffer id
 	public $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
+	public $sServerName;			// name of this server connection
 
 	public $torc;
 
@@ -47,6 +48,7 @@ class irc
 	)
 	{
 		$this->autonick = 1;
+		$this->sServerName = $server; // XXX set on 001 as well
 		
 		if($ssl)
 		{
@@ -292,7 +294,7 @@ class irc
 		if ($iId == -1)
 		{
 			$this->torc->output->Output(BUFFER_CURRENT, "Creating new buffer as current one doesn't exist for " . $this->ex[2]);
-			$iId = $this->torc->output->AddBuffer($this->ex[2]);
+			$iId = $this->torc->output->AddBuffer($this, $this->ex[2]);
 			$this->chans[$this->ex[2]] = $iId;
 			$this->torc->output->DrawBuffer($iId);
 			$this->torc->output->Output(BUFFER_CURRENT, "Created a new buffer, ID is " . $this->GetBufferID($this->ex[2]));

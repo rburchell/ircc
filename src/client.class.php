@@ -11,19 +11,115 @@
 
 class Client
 {
-	public $irc;			/* server connection */
 	public $output;			/* ncurses stuff */
 	public $Config;			/* Instance of configuration class. */
 
+	private $aServers = array();		/* Array of IRC server connections. */
+	public $IRC;			/* the "active" IRC connection -- WARNING: unlike torc/early ircc, this MAY be unset! */
+
 	private $nick;			/* stores nickname, passed on new connection creation */
 	private $username;		/* stores username, passed on new connection creation */
+	public function __toString()
+	{
+		return "Client";
+	}
+	public function AddConnection()
+	{
+		$oConnection = new irc($this);
+		$this->aServers[] = $oConnection;
+		$this->SetActiveConnection($oConnection);
+	}
+
+	public function SetActiveConnection(&$oConnection)
+	{
+		$this->IRC = $oConnection;
+	}
+
+	// Retrieves the next server connection available, or NULL if none available.
+	public function &GetNextConnection()
+	{
+		file_put_contents("getserv", "Finding a server connection.\n", FILE_APPEND);
+
+		if (count($this->aServers) == 0)
+		{
+			$oStupidPHP = null;
+			return $oStupidPHP;
+		}
+
+		if ($this->IRC == null)
+		{
+			file_put_contents("getserv", "Finding a server connection. this->irc is NULL, returning first\n", FILE_APPEND);
+			if (isset($this->aServers[0]))
+				return $this->aServers[0];
+		}
+		else
+		{
+			if (count($this->aServers) > 1)
+			{
+				$bFound = false;
+
+file_put_contents("getserv", "this->irc is " . $this->IRC->sServerName . "\n", FILE_APPEND);
+				foreach ($this->aServers as $oServer)
+				{
+file_put_contents("getserv", "Examining " . $oServer->sServerName . "\n", FILE_APPEND);
+					// XXX this should really compare object, not name...
+					if ($oServer === $this->IRC)
+					{
+file_put_contents("getserv", "true, returning next.\n", FILE_APPEND);
+						$bFound = true;
+					}
+					else
+					{
+						if ($bFound == true)
+file_put_contents("getserv", "and now returning " . $oServer->sServerName . "\n", FILE_APPEND);
+							return $oServer;
+					}
+				}
+
+				// If we get here it was the last server in the array
+				foreach ($this->aServers as $oServer)
+				{
+file_put_contents("getserv", "found the last, returning the first: " . $oServer->sServerName . "\n", FILE_APPEND);
+					return $oServer; // so return the first.
+				}
+			}
+			else
+			{
+file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
+				return $this->aServers[0];
+			}
+		}
+	}
+
+	public function DeleteConnection(&$oConnection)
+	{
+		if ($this->IRC == $oConnection)
+		{
+			// XXX we should probably try "guess" an active connection rather than setting null, but oh well.
+			$this->IRC = null;
+		}
+
+		foreach ($this->aServers as $iIndex => $oServer)
+		{
+			if ($oServer == $oConnection)
+			{
+				$oServer = null;
+				unset($aServers[$iIndex]);
+				break;
+			}
+		}
+	}
 
 	/*
 	 * Initiates a shutdown of the client, sends QUIT to all connections, then shuts down ncurses, etc.
 	 */
 	public function shutdown($msg = "")
 	{
-		$this->irc->squit($msg);
+		foreach ($this->aServers as $oServer)
+		{
+			$oServer->squit($msg);
+		}
+
 		$this->output = null;
 		die();
 	}
@@ -43,8 +139,13 @@ class Client
 
 		$aRead[] = $this->output->stdin;
 
-		if ($this->irc->sp)
-			$aRead[] = $this->irc->sp;
+		foreach ($this->aServers as $oServer)
+		{
+			if ($oServer->sp)
+			{
+				$aRead[] = $oServer->sp;
+			}
+		}
 
 		/*
 		 * It's annoying to have to @suppress warnings on stream_select(), but PHP raises E_NOTICE if select
@@ -73,7 +174,11 @@ class Client
 			else
 			{
 				// irc callback
-				$this->irc->procline();
+				foreach ($this->aServers as $oServer)
+				{
+					if ($oServer->sp == $iSocket)
+						$oServer->procline();
+				}
 			}
 		}
 	}
@@ -101,11 +206,15 @@ class Client
 				if (file_exists("./src/commands/" . $cmd . ".command.inc.php"))
 					include("commands/" . $cmd . ".command.inc.php");
 				else
-					$this->irc->sendline($cmd." ".$msgf);
+				{
+					if ($this->IRC)
+						$this->IRC->sendline($cmd." ".$msgf);
+				}
 			}
 			else
 			{
-				$this->irc->say($input);
+				if ($this->IRC)
+					$this->IRC->say($input);
 			}
 		}
 	}
@@ -116,12 +225,12 @@ class Client
 	 */
 	public function __construct()
 	{
+		$oNull = null; // WHY can I not pass a reference to NULL for christ's sake
 		$sStatus = "Status";
 		$this->output = new ncurse($this);
 		$this->output->SetDisplayVar("nick", ""); // Bit of a hack. Stops the AddBuffer below exploding things.
 		$this->output->SetDisplayVar("scrolled", false); // XXX move these to output constructor
-		$this->output->AddBuffer($sStatus); // Create status buffer. ALWAYS at position 0.
-		$this->irc = new irc($this);
+		$this->output->AddBuffer($oNull, $sStatus); // Create status buffer. ALWAYS at position 0.
 		$this->Config = new Configuration($this);
 
 		$this->output->Output(BUFFER_STATUS, IRCC_VER . " - irc client");
@@ -151,8 +260,9 @@ class Client
 		{
 			foreach ($aAutoconnect as $aServer)
 			{
+				$this->AddConnection();
 				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $aServer['name']); 
-				$this->irc->connect($aServer['name'], 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
+				$this->IRC->connect($aServer['name'], 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
 			}
 		}
 	}
@@ -170,8 +280,12 @@ class Client
 			// Pop an error off and display to the user, if there is one.
 			// Only display one to avoid flooding.
 			global $aErrors;
-			if (($sMsg = array_pop($aErrors)))
-				$this->output->Output(BUFFER_CURRENT, $sMsg);
+			if (($aErr = array_pop($aErrors)))
+			{
+				$this->output->Output(BUFFER_CURRENT, $aErr['message']);
+				foreach ($aErr['backtrace'] as $sMsg)
+					$this->output->Output(BUFFER_CURRENT, $sMsg);
+			}
 		}
 	}
 }

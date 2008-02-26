@@ -135,13 +135,13 @@ class ncurse
 	 * Creates a new buffer, and returns the index it may be referenced by.
 	 *
 	 */
-	function AddBuffer(&$sName)
+	function AddBuffer(&$oServer, &$sName)
 	{
 		for ($i = 0; /* nothing */; $i++)
 		{
 			if (!isset($this->aBuffers[$i]))
 			{
-				$this->aBuffers[$i] = new Buffer($this->torc, $sName);
+				$this->aBuffers[$i] = new Buffer($this->torc, $oServer, $sName);
 				return $i;
 			}
 		}
@@ -174,8 +174,22 @@ class ncurse
 	 */
 	public function DrawBuffer($iBuffer)
 	{
-		$this->iCurrentBuffer = $iBuffer;
-		$this->torc->irc->sCurrentTarget = $this->aBuffers[$iBuffer]->sName;
+		if (!isset($this->aBuffers[$iBuffer]))
+			return;
+
+		// If the user is switching buffers, switch the server connection over too.
+		if ($this->iCurrentBuffer != $iBuffer)
+		{
+			$this->iCurrentBuffer = $iBuffer;
+
+			// If it's an IRC buffer..
+			if ($this->aBuffers[$iBuffer]->oServer != null)
+			{
+				$this->torc->IRC = $this->aBuffers[$iBuffer]->oServer;
+				$this->torc->IRC->sCurrentTarget = $this->aBuffers[$iBuffer]->sName;
+			}
+		}
+
 		$this->SetDisplayVar("window", $this->aBuffers[$iBuffer]->sName);
 		$this->setuserinput();
 		$this->aBuffers[$iBuffer]->active = false;
@@ -323,6 +337,19 @@ class ncurse
 					$this->setuserinput();
 					$this->sendhislu = true;
 					return $usrp;
+					break;
+				case 24:
+					// ctrl + x..
+					$oActive = $this->torc->GetNextConnection();
+					if ($oActive)
+					{
+						$this->torc->SetActiveConnection($oActive);
+						$this->Output(BUFFER_CURRENT, "Switched servers to " . $this->torc->IRC->sServerName);
+					}
+					else
+					{
+						$this->Output(BUFFER_CURRENT, "Not connected anywhere.");
+					}
 					break;
 				case NCURSES_KEY_BACKSPACE:
 					$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);

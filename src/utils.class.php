@@ -99,7 +99,18 @@ class Utils
 		if ($aMsg[0] != "stream_select():")
 		{
 			global $aErrors;
-			$aErrors[] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
+			$aError['message'] = "ERROR: " . $errno . ": " . $errstr . " in " . $errfile . ":" . $errline;
+			$aBacktrace = debug_backtrace();
+			foreach ($aBacktrace as $iStack => $aBT)
+			{
+				if ($iStack == 0)
+					continue; // don't care about the call to error handler
+				$sMsg = "#" . ($iStack - 1) . ": " . $aBT['file'] . ":" . $aBT['line'] . " - ";
+				$sMsg .= isset($aBT['object']) ? get_class($aBT['object']) : "";
+				$sMsg .=  "::" . $aBT['function'] . "(" . implode(", ", $aBT['args']) . ")";
+				$aError['backtrace'][] = $sMsg;
+			}
+			$aErrors[] = $aError;
 		}
 	}
 
