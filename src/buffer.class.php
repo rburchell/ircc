@@ -102,8 +102,11 @@ class Buffer
 		$iLines = 0;
 
 		// Get each line at the start of the viewport (total lines - scroll), and append to array.
-		for ($x = $this->iLines - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++)
+		for ($x = $this->iLines - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++) 
 		{
+			// Short (sorta wrong) fix: cast $x to int - so it works with buffer_scroll at 0.1, etc. We should
+			// really intval() scroll when we set it instead.
+			$x = (int)$x;
 			$iLines++;
 			if (isset($this->aLines[$x]))
 			{
