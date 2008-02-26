@@ -226,11 +226,13 @@ class ncurse
 		}
 
 		/*
-		 * .. But it still needs to fit in the viewport, so nuke any extra lines after splitting off the top.
+		 * .. But it still needs to fit in the viewport, so split off extra lines at the top to fit it in
 		 */
-		while (count($aRender) > $this->lines - 2) // XXX array_slice can probably make this more efficient
-			array_shift($aRender);
-
+		if (count($aRender) > $this->lines - 2)
+		{
+			$iDiff = count($aRender) - ($this->lines - 2);
+			$aRender = array_slice($aRender, $iDiff);
+		}
 
 		/*
 		 * And display the processed lines to the user.

@@ -50,9 +50,15 @@ class Buffer
 			$this->scroll++; // we want to keep scrolled up by the right amount of lines =)
 
 		// The following code will nuke lines out of memory after it gets big enough.
+		//if (count($aRender) > $this->lines - 2)
+		//{
+		//	$iDiff = count($aRender) - ($this->lines - 2);
+		//	$aRender = array_slice($aRender, $iDiff);
+		//}
+		//
 		//while (count($this->aLines) > 10)
 		//{
-		//	// XXX I'm positive this could be done more efficiently with array_slice.
+		//	// XXX I'm positive this could be done more efficiently with array_slice. - example above
 		//	array_shift($this->aLines);
 		//}
 	}
