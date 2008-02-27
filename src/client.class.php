@@ -259,9 +259,39 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 		{
 			foreach ($aAutoconnect as $sServer => $aServer)
 			{
+				if (isset($aServer['nick']))
+					$sNick = $aServer['nick'];
+				else
+					$sNick = $this->nick;
+
+				if (isset($aServer['ident']))
+					$sUser = $aServer['ident'];
+				else
+					$sUser = $this->username;
+
+				if (isset($aServer['gecos']))
+					$sGecos = $aServer['gecos'];
+				else
+					$sGecos = "ircc user";
+
+				if (isset($aServer['pass']))
+					$sPass = $aServer['pass'];
+				else
+					$sPass = "";
+
+				if (isset($aServer['port']))
+					$sPort = $aServer['port'];
+				else
+					$sPort = "";
+
+				if (isset($aServer['ssl']))
+					$bSSL = true;
+				else
+					$bSSL = false;
+
 				$this->AddConnection();
 				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $sServer); 
-				$this->IRC->connect($sServer, 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
+				$this->IRC->connect($sServer, $sPort, $bSSL, $sUser, "hostname", "servername", $sGecos, $sNick, $sPass);
 			}
 		}
 	}
