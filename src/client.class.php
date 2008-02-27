@@ -203,7 +203,16 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 				$msg = implode($ex, " ");
 				$msgf = implode(array_slice($ex, 1), " "); // same as $msg, except without the command prefix.
 
-				// XXX this doesn't allow for aliases yet.
+				$aAliases = $this->Config->GetKey("/alias");
+				if ($aAliases)
+				{
+					if (isset($aAliases[$cmd]))
+					{
+						// XXX doesn't support multiple commands here
+						$cmd = $aAliases[$cmd];
+					}
+				}
+
 				if (file_exists("./src/commands/" . $cmd . ".command.inc.php"))
 					include("commands/" . $cmd . ".command.inc.php");
 				else
