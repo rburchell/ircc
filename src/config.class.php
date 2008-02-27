@@ -50,10 +50,18 @@ class Configuration
 		}
 
 		$sLast = end($aParam);
-		if(empty($sLast))
-			$aUse[] = $sValue;
+
+		if ($vValue)
+		{
+			if(empty($sLast))
+				$aUse[] = $sValue;
+			else
+				$aUse[$sLast] = $vValue;
+		}
 		else
-			$aUse[$sLast] = $vValue;
+		{
+			unset($aUse[$sLast]);
+		}
 
 		$this->SaveConfig();
 	}
