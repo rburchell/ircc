@@ -254,7 +254,7 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 		$this->nick = $this->username;
 
 		// Process autoconnects
-		$aAutoconnect = $this->Config->autoconnect_servers;
+		$aAutoconnect = $this->Config->GetKey("/autoconnect");
 		if ($aAutoconnect)
 		{
 			foreach ($aAutoconnect as $aServer)

@@ -16,6 +16,8 @@ class Configuration
 
 	public function __construct(&$oClient)
 	{
+		if (!file_exists("~/.ircc"))
+			mkdir("~/.ircc");
 		$this->oClient = $oClient;
 		$this->LoadConfig();
 	}
@@ -36,16 +38,44 @@ class Configuration
 		file_put_contents("settings.ini", '$this->aConfig = ' . var_export($this->aConfig, true) . ';');
 	}
 
-	public function __set($sKey, $vValue)
+	public function SetKey($sKey, $vValue)
 	{
-		$this->aConfig[$sKey] = $vValue;
+		$aParam = explode("/", ltrim($sKey, "/"));
+		$aUse =& $this->aConfig;
+
+		for($i = 0; $i < count($aParam) - 1; $i++)
+		{
+			if(!isset($aUse[$aParam[$i]]) || !is_array($aUse[$aParam[$i]]))
+				$aUse[$aParam[$i]] = Array();
+
+			$aUse =& $aUse[$aParam[$i]];
+		}
+
+		$sLast = end($aParam);
+		if(empty($sLast))
+			$aUse[] = $sValue;
+		else
+			$aUse[$sLast] = $vValue;
+
 		$this->SaveConfig();
 	}
 
-	public function __get($sKey)
+	public function GetKey($sKey)
 	{
-		if (isset($this->aConfig[$sKey]))
-			return $this->aConfig[$sKey];
+		$aParam = explode("/", ltrim($sKey, "/"));
+		$aUse =& $this->aConfig;
+
+		for($i = 0; $i < count($aParam) - 1; $i++)
+		{
+			if(!isset($aUse[$aParam[$i]]) || !is_array($aUse[$aParam[$i]]))
+				return null;
+
+			$aUse =& $aUse[$aParam[$i]];
+		}
+
+		$sLast = end($aParam);
+		if (isset($aUse[$sLast]))
+			return $aUse[$sLast];
 
 		return null;
 	}

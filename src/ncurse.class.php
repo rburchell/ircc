@@ -236,7 +236,7 @@ class ncurse
 			}
 			else
 			{
-				$sTimestamp = $this->torc->Config->timestamp_format;
+				$sTimestamp = $this->torc->Config->GetKey("/timestamp/format");
 
 				if ($sTimestamp)
 					$sLine = date($sTimestamp, $oLine->iTime) . " " . $oLine->sLine;
@@ -334,7 +334,7 @@ class ncurse
 
 			switch ($c)
 			{
-				case KEY_RESIZE:
+				case NCURSES_KEY_RESIZE:
 					break; // Eat this. We don't want resizing of window to add loads of crap to the input.
 				case 27:
 					// Alt modifier.
