@@ -16,8 +16,6 @@ class Configuration
 
 	public function __construct(&$oClient)
 	{
-		if (!file_exists("~/.ircc"))
-			mkdir("~/.ircc");
 		$this->oClient = $oClient;
 		$this->LoadConfig();
 	}

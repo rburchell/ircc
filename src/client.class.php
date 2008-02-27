@@ -257,11 +257,11 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 		$aAutoconnect = $this->Config->GetKey("/autoconnect");
 		if ($aAutoconnect)
 		{
-			foreach ($aAutoconnect as $aServer)
+			foreach ($aAutoconnect as $sServer => $aServer)
 			{
 				$this->AddConnection();
-				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $aServer['name']); 
-				$this->IRC->connect($aServer['name'], 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
+				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $sServer); 
+				$this->IRC->connect($sServer, 6667, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick);
 			}
 		}
 	}
