@@ -75,10 +75,10 @@ class Buffer
 	 */
 	public function ScrollUp()
 	{
-		$fScrollModifier = $this->oClient->Config->buffer_scroll;
+		$fScrollModifier = $this->oClient->Config->GetKey("buffer/scroll");
 		if (!$fScrollModifier)
 			$fScrollModifier = 0.5;
-		$this->scroll = $this->scroll - ($this->oClient->output->lines * $fScrollModifier);
+		$this->scroll = intval($this->scroll - ($this->oClient->output->lines * $fScrollModifier));
 		if($this->scroll < 0)
 			$this->scroll = 0;
 	}
@@ -89,10 +89,10 @@ class Buffer
 	public function ScrollDown()
 	{
 		// XXX.. this should probably keep a count of total lines rather than having to constantly re-explode the buffer.
-		$fScrollModifier = $this->oClient->Config->buffer_scroll;
+		$fScrollModifier = $this->oClient->Config->GetKey("buffer/scroll");
 		if (!$fScrollModifier)
 			$fScrollModifier = 0.5;
-		$this->scroll = $this->scroll + ($this->oClient->output->lines * $fScrollModifier);
+		$this->scroll = intval($this->scroll + ($this->oClient->output->lines * $fScrollModifier));
 		if ($this->scroll > $this->iLines - 1)
 			$this->scroll = $this->iLines - 1;
 	}
@@ -106,9 +106,6 @@ class Buffer
 		// Get each line at the start of the viewport (total lines - scroll), and append to array.
 		for ($x = $this->iLines - ($this->scroll + ($this->oClient->output->lines - 2)); $iLines < ($this->oClient->output->lines - 2); $x++) 
 		{
-			// Short (sorta wrong) fix: cast $x to int - so it works with buffer_scroll at 0.1, etc. We should
-			// really intval() scroll when we set it instead.
-			$x = (int)$x;
 			$iLines++;
 			if (isset($this->aLines[$x]))
 			{
