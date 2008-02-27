@@ -282,7 +282,7 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 				if (isset($aServer['port']))
 					$sPort = $aServer['port'];
 				else
-					$sPort = "";
+					$sPort = "6667";
 
 				if (isset($aServer['ssl']))
 					$bSSL = true;
