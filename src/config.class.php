@@ -54,7 +54,7 @@ class Configuration
 		if ($vValue)
 		{
 			if(empty($sLast))
-				$aUse[] = $sValue;
+				$aUse[] = $vValue;
 			else
 				$aUse[$sLast] = $vValue;
 		}

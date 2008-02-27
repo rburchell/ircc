@@ -27,6 +27,7 @@ class irc
 	public $chans = array();		// A lookup of channel name to buffer id
 	public $sCurrentTarget;			// which window to send privmsg etc to (set by class torc)
 	public $sServerName;			// name of this server connection
+	public $sNetworkName; 			// Network name (from 005)
 
 	public $torc;
 
@@ -345,6 +346,39 @@ class irc
 
 		if ($this->ex[1] == "001")
 			$this->SetUserNick($this->ex[2]);
+
+		if ($this->ex[1] == "005")
+		{
+			for ($i = 3; $i < count($this->ex); $i++)
+			{
+				$aToken = explode("=", $this->ex[$i]);
+
+				if ($aToken[0] == "NETWORK")
+				{
+					$this->sNetworkName = $aToken[1];
+				}
+			}
+
+			if (!isset($this->sNetworkName))
+				$this->sNetworkName = $this->sServerName;
+		}
+
+		if ($this->ex[1] == "376")
+		{
+			$aOnConnect = $this->torc->Config->GetKey("/onconnect/" . $this->sNetworkName);
+
+			$this->torc->output->Output(BUFFER_CURRENT, "Onconnect for " . $this->sNetworkName);
+
+			if ($aOnConnect)
+			{
+				$this->torc->output->Output(BUFFER_CURRENT, "IS SET");
+				foreach ($aOnConnect as $sOnConnect)
+				{
+					// XXX this should probably use the command parser stuff, not just send raw.
+					$this->sendline($sOnConnect);
+				}
+			}
+		}
 
 		if(substr($mg, 0, 1) == ':')
 			$mg = substr($mg, 1);
