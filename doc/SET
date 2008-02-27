@@ -8,12 +8,12 @@ None of these will be documented here.
 
 ---
 
-/set timestamp_format timestamp format here
+/set timestamp/format timestamp format here
 This value sets how timestamps are to be formatted.
 For reference on possible format, see the PHP manual: http://uk3.php.net/date
 (an example might be [h:m:s] for output like [22:10:36]).
 
-/set buffer_scroll multiplier here
+/set buffer/scroll multiplier here
 This value sets how much of a "screen" page up/down scroll.
 The default is 0.5, which is half a screen.
 Personally, I prefer 0.6/0.7.
