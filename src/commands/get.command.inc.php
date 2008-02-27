@@ -13,6 +13,10 @@ if (isset($ex[1]))
 			$this->output->Output(BUFFER_CURRENT, " " . $sLine);
 		}
 	}
+	else
+	{
+		$this->output->Output(BUFFER_CURRENT, "get: no value for " . $ex[1]);
+	}
 }
 else
 {
