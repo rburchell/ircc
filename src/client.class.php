@@ -38,7 +38,7 @@ class Client
 	// Retrieves the next server connection available, or NULL if none available.
 	public function &GetNextConnection()
 	{
-		file_put_contents("getserv", "Finding a server connection.\n", FILE_APPEND);
+		file_put_contents("getserv", "****** Finding a server connection.\n", FILE_APPEND);
 
 		if (count($this->aServers) == 0)
 		{
@@ -71,8 +71,10 @@ file_put_contents("getserv", "true, returning next.\n", FILE_APPEND);
 					else
 					{
 						if ($bFound == true)
+						{
 file_put_contents("getserv", "and now returning " . $oServer->sServerName . "\n", FILE_APPEND);
 							return $oServer;
+						}
 					}
 				}
 
