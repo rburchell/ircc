@@ -89,6 +89,19 @@ class Utils
 		return $aRet;
 	}
 
+	// Gets a string printable version of something
+	static public function GetArgAsString(&$vArg)
+	{
+		if (is_array($vArg))
+		{
+			return str_replace("\n", "", var_export($vArg, true));
+		}
+
+		// XXX do we need more handling?
+
+		return $vArg;
+	}
+
 	// error handler function
 	static public function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
@@ -107,7 +120,17 @@ class Utils
 					continue; // don't care about the call to error handler
 				$sMsg = "#" . ($iStack - 1) . ": " . $aBT['file'] . ":" . $aBT['line'] . " - ";
 				$sMsg .= isset($aBT['object']) ? get_class($aBT['object']) : "";
-				$sMsg .=  "::" . $aBT['function'] . "(" . implode(", ", $aBT['args']) . ")";
+				$sMsg .=  "::" . $aBT['function'] . "(";
+
+				for ($i = 0; $i < count($aBT['args']); $i++)
+				{
+					$sMsg .= Utils::GetArgAsString($aBT['args'][$i]);
+
+					if ($i != count($aBT['args']) - 1)
+						$sMsg .= ", ";					
+				}
+
+				$sMsg .= ")";
 				$aError['backtrace'][] = $sMsg;
 			}
 			$aErrors[] = $aError;
