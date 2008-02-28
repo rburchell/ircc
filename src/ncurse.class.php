@@ -374,6 +374,10 @@ class ncurse
 					$this->aBuffers[$this->iCurrentBuffer]->ScrollDown();
 					$this->DrawBuffer($this->iCurrentBuffer);
 					break;
+				case NCURSES_KEY_LEFT:
+					break; // left one char
+				case NCURSES_KEY_RIGHT:
+					break; // right one char
 				case NCURSES_KEY_UP:
 					if($this->sendhispt >= 0)
 					{
