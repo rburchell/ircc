@@ -92,7 +92,7 @@ class Utils
 	// error handler function
 	static public function ErrorHandler($errno, $errstr, $errfile, $errline)
 	{
-		file_put_contents("error.log", $errstr, FILE_APPEND);
+		file_put_contents("error.log", $errstr . "\n", FILE_APPEND);
 
 		// YUCK. See the main socket loop for why this is necessary.
 		$aMsg = explode(" ", $errstr);
