@@ -495,7 +495,7 @@ class ncurse
 		ncurses_waddstr($this->userinputw, "]");
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->aDisplayVars['window'] . "] " . $this->userinputt . '_');
+		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $this->userinputt . '_');
 
 
 		ncurses_wrefresh($this->userinputw);
