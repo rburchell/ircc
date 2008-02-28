@@ -215,8 +215,6 @@ class ncurse
 		/*
 		 * Blank the console.
 		 */
-		$ex = $this->aBuffers[$iBuffer]->Display();
-
 		for($x = 0; $x < $this->lines-2; $x++)
 		{
 			ncurses_mvwaddstr($this->ircoutput, $x, 0, $this->cl);
@@ -228,6 +226,8 @@ class ncurse
 		 * Of course, the buffer only gave us the viewport contents in "raw" form.
 		 * We now need to split lines as necessary, so let's generate a new array of 'processed' output..
 		 */
+		$ex = $this->aBuffers[$iBuffer]->Display();
+
 		foreach ($ex as $oLine)
 		{
 			if ($oLine == null)
