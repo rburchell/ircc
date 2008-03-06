@@ -137,6 +137,25 @@ class Utils
 		}
 	}
 
+	/*
+	 * Checks the syntax is correct for PHP file sFileName and returns true if ok, false if not, and
+	 * modifies aReturn to contain errors returned by PHP.
+	 */
+	static public function CheckSyntax($sFileName, &$aReturn)
+	{
+		exec("php -l " . escapeshellarg($sFileName), $aOut, $iCode);
+
+		if ($iCode == 0)
+		{
+			return true;
+		}
+		else
+		{
+			$aReturn = $aOut;
+			return false;
+		}
+	}
+
 	// Split the line into smaller parts so it fits into the window, returns array of lines
 	static public function SplitLine($line, $columns)
 	{
