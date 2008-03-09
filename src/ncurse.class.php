@@ -20,19 +20,19 @@ declare(ticks = 1);
 
 class ncurse
 {
-	var $ncursesess;
-	var $mainwin;
-	var $userinputw;
-	var $ircoutput;
-	var $stdin;
-	var $ircout_content;
-	var $lines, $columns;
-	var $userinputt;
-	var $userinputp = 0;
-	var $cl;
-	var $sendhis = array();
-	var $sendhispt;
-	var $sendhislu;
+	public $ncursesess;
+	public $mainwin;
+	public $userinputw;
+	public $ircoutput;
+	public $stdin;
+	public $ircout_content;
+	public $lines, $columns;
+	public $userinputt;
+	public $userinputp = 0;
+	public $cl;
+	public $sendhis = array();
+	public $sendhispt;
+	public $sendhislu;
 
 	public $aDisplayVars = array();			// This contains information (like name etc) that are used when painting the GUI
 	public $aBuffers = array();			// Numerically indexed array of Buffer instances.
