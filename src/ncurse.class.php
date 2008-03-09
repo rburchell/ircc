@@ -16,7 +16,16 @@ define('NC_PAIR_IRCOUT',			1);					// Colour pair used for the IRC output window
 define('NC_PAIR_INPUT',				2);					// Colour pair used for the input window
 define('NC_PAIR_INPUT_ACTIVE',		3);					// Colour pair used for the input window, active window listing text.
 
+/* Turn signals on so we can catch SIGWINCH */
 declare(ticks = 1);
+
+/*
+ *
+ *
+ *
+ *
+ *
+ */
 
 class ncurse
 {
@@ -28,7 +37,7 @@ class ncurse
 	public $ircout_content;
 	public $lines, $columns;
 	public $userinputt;
-	public $userinputp = 0;
+	public $iInputPos = 1;
 	public $cl;
 	public $sendhis = array();
 	public $sendhispt;
@@ -363,7 +372,10 @@ class ncurse
 					}
 					break;
 				case NCURSES_KEY_BACKSPACE:
-					$this->userinputt = substr($this->userinputt, 0, strlen($this->userinputt)-1);
+					$this->userinputt = substr($this->userinputt, 0, $this->iInputPos - 2) . substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
+					$this->iInputPos--;
+					if ($this->iInputPos < 0)
+						$this->iInputPos = 0;
 					$this->setuserinput();
 					break;		
 				case NCURSES_KEY_NPAGE:
@@ -375,8 +387,14 @@ class ncurse
 					$this->DrawBuffer($this->iCurrentBuffer);
 					break;
 				case NCURSES_KEY_LEFT:
+					$this->iInputPos--;
+					if ($this->iInputPos < 0)
+						$this->iInputPos = 0;
 					break; // left one char
 				case NCURSES_KEY_RIGHT:
+					$this->iInputPos++;
+					if ($this->iInputPos > strlen($this->userinputt) + 1)
+						$this->iInputPos = strlen($this->userinputt) + 1;
 					break; // right one char
 				case NCURSES_KEY_UP:
 					if($this->sendhispt >= 0)
@@ -387,6 +405,7 @@ class ncurse
 							$this->sendhislu = true;
 						}
 						$this->userinputt = $this->sendhis[$this->sendhispt];
+						$this->iInputPos = strlen($this->userinputt);
 						$this->sendhispt--;
 						$this->setuserinput();
 					}
@@ -401,11 +420,17 @@ class ncurse
 						}
 						$this->sendhispt++;
 						$this->userinputt = $this->sendhis[$this->sendhispt];
+						$this->iInputPos = strlen($this->userinputt);
 						$this->setuserinput();
 					}
 					break;
 				default:
-					$this->userinputt .= chr($c);
+					//$this->Output(BUFFER_CURRENT, "buffer is " . $this->userinputt);
+					$this->userinputt = substr($this->userinputt, 0, $this->iInputPos - 1) . chr($c) .  
+substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt)); 
+					//$this->Output(BUFFER_CURRENT, "(after): buffer is " . $this->userinputt);
+					$this->iInputPos++;
+					//$this->userinputt .= chr($c);
 					$this->setuserinput();
 					break;
 			}
@@ -498,8 +523,17 @@ class ncurse
 
 		ncurses_waddstr($this->userinputw, "]");
 
+		if (time() % 2)
+		{
+			$sInput = $this->userinputt;
+		}
+		else
+		{
+			$sInput = substr($this->userinputt, 0, $this->iInputPos - 1) . "_" . substr($this->userinputt, $this->iInputPos, strlen($this->userinputt));
+		}
+
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $this->userinputt . '_');
+		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $sInput);
 
 
 		ncurses_wrefresh($this->userinputw);
