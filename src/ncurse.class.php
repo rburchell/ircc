@@ -148,7 +148,7 @@ class ncurse
 	{
 		for ($i = 0; /* nothing */; $i++)
 		{
-			if (!isset($this->aBuffers[$i]))
+			if (!$this->IsBuffer($i))
 			{
 				$this->aBuffers[$i] = new Buffer($this->torc, $oServer, $sName);
 				return $i;
@@ -356,6 +356,7 @@ class ncurse
 					$this->userinputt = '';
 					$this->setuserinput();
 					$this->sendhislu = true;
+					$this->iInputPos = 1;
 					return $usrp;
 					break;
 				case 24:
@@ -396,6 +397,45 @@ class ncurse
 					if ($this->iInputPos > strlen($this->userinputt) + 1)
 						$this->iInputPos = strlen($this->userinputt) + 1;
 					break; // right one char
+				case 9:
+					// tab.
+					// First, we need to get a word.
+					$iStart = $this->iInputPos - 1;
+					while ($iStart > 0 && $this->userinputt[$iStart - 1] != ' ')
+					{
+						$iStart--;
+					}
+
+					// iStart should now point at the start of a word. Find the end.
+					$iEnd = $iStart;
+					$iNumChars = 1;
+					while ($iEnd < strlen($this->userinputt))
+					{
+						$this->Output(BUFFER_CURRENT, "Finding end. Char is " . $this->userinputt[$iEnd]);
+						if ($this->userinputt[$iEnd] != ' ')
+						{
+							$iEnd++;
+							$iNumChars++;
+						}
+						else
+							break;
+					}
+
+//					$iEnd--;
+
+					$sTab = substr($this->userinputt, $iStart, $iNumChars);
+					$this->Output(BUFFER_CURRENT, "Got tab complete for " . $sTab . " (start: " . $iStart . " end: " . $iEnd . " strlen " . strlen($this->userinputt) . ")");
+
+					foreach ($this->aBuffers as $oBuffer)
+					{
+						if (strncasecmp($oBuffer->sName, $sTab, strlen($sTab)) == 0)
+						{
+								$this->Output(BUFFER_CURRENT, "MATCH on " . $oBuffer->sName . " for pattern " . $sTab);
+								$this->userinputt = substr($this->userinputt, 0, $iStart) . $oBuffer->sName . substr($this->userinputt, $iEnd, strlen($this->userinputt));
+								break;
+						}
+					}
+					break;
 				case NCURSES_KEY_UP:
 					if($this->sendhispt >= 0)
 					{
@@ -523,14 +563,15 @@ substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
 
 		ncurses_waddstr($this->userinputw, "]");
 
-		if (time() % 2)
-		{
-			$sInput = $this->userinputt;
-		}
-		else
-		{
+// XXX must be a better way to do this.
+//		if (time() % 2)
+//		{
+//			$sInput = $this->userinputt;
+//		}
+//		else
+//		{
 			$sInput = substr($this->userinputt, 0, $this->iInputPos - 1) . "_" . substr($this->userinputt, $this->iInputPos, strlen($this->userinputt));
-		}
+//		}
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
 		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $sInput);
