@@ -5,7 +5,7 @@ else
 {
 	if ($ex[1] == "close")
 	{
-		if ($this->output->IsBuffer($ex[2]) && $ex[2] != 0 /* no closing root window. */)
+		if ($this->output->IsBuffer($ex[2]) && $ex[2] != BUFFER_STATUS /* no closing root window. */)
 		{
 			$this->output->DeleteBuffer($ex[2]);
 			$this->output->Output(BUFFER_CURRENT, "Closed successfully.");
