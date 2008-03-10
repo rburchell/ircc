@@ -373,11 +373,12 @@ class ncurse
 					}
 					break;
 				case NCURSES_KEY_BACKSPACE:
-					$this->userinputt = substr($this->userinputt, 0, $this->iInputPos - 2) . substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
-					$this->iInputPos--;
-					if ($this->iInputPos < 0)
-						$this->iInputPos = 0;
-					$this->setuserinput();
+					if ($this->iInputPos != 1) // ignore if we're at the start of the damn string.. causes weirdities. :|
+					{
+						$this->userinputt = substr($this->userinputt, 0, $this->iInputPos - 2) . substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
+						$this->iInputPos--;
+						$this->setuserinput();
+					}
 					break;		
 				case NCURSES_KEY_NPAGE:
 					$this->aBuffers[$this->iCurrentBuffer]->ScrollUp();
@@ -389,8 +390,8 @@ class ncurse
 					break;
 				case NCURSES_KEY_LEFT:
 					$this->iInputPos--;
-					if ($this->iInputPos < 0)
-						$this->iInputPos = 0;
+					if ($this->iInputPos < 1)
+						$this->iInputPos = 1;
 					break; // left one char
 				case NCURSES_KEY_RIGHT:
 					$this->iInputPos++;
@@ -408,7 +409,7 @@ class ncurse
 
 					// iStart should now point at the start of a word. Find the end.
 					$iEnd = $iStart;
-					$iNumChars = 1;
+					$iNumChars = 0;
 					while ($iEnd < strlen($this->userinputt))
 					{
 						$this->Output(BUFFER_CURRENT, "Finding end. Char is " . $this->userinputt[$iEnd]);
@@ -424,7 +425,7 @@ class ncurse
 //					$iEnd--;
 
 					$sTab = substr($this->userinputt, $iStart, $iNumChars);
-					$this->Output(BUFFER_CURRENT, "Got tab complete for " . $sTab . " (start: " . $iStart . " end: " . $iEnd . " strlen " . strlen($this->userinputt) . ")");
+					$this->Output(BUFFER_CURRENT, "Got tab complete for " . $sTab . "(len: " . strlen($sTab) . ") (start: " . $iStart . " end: " . $iEnd . " strlen " . strlen($this->userinputt) . ")");
 
 					foreach ($this->aBuffers as $oBuffer)
 					{
@@ -574,7 +575,8 @@ substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
 //		}
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $sInput);
+		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] (debug: pos: " 
+. $this->iInputPos . " and len " . strlen($sInput) . " orig len " . strlen($this->userinputt) . ") " . $sInput);
 
 
 		ncurses_wrefresh($this->userinputw);
