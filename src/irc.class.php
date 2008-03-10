@@ -221,14 +221,16 @@ class irc
 		}
 	}
 
-	function say($msg){
+	function say($msg)
+	{
 		$this->sprivmsg($this->sCurrentTarget, trim($msg), false);
 		$this->torc->output->Output(BUFFER_CURRENT, '<'.$this->usernick.'> '.$msg);
 	}
 
-	function saction($msg){
+	function saction($msg)
+	{
 		$this->sprivmsg($this->sCurrentTarget, chr(1).'ACTION '.trim($msg).chr(1),false);
-		$this->torc->output->Output(BUFFER_CURRENT, '*'.$this->usernick . ' '.trim($msg).'*');
+		$this->torc->output->Output(BUFFER_CURRENT, '* '.$this->usernick . ' '.trim($msg));
 	}
 
 
