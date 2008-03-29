@@ -365,7 +365,7 @@ class irc
 				$this->sNetworkName = $this->sServerName;
 		}
 
-		if ($this->ex[1] == "376")
+		if ($this->ex[1] == "251")
 		{
 			$aOnConnect = $this->torc->Config->GetKey("/onconnect/" . $this->sNetworkName);
 
