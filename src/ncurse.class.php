@@ -575,8 +575,8 @@ substr($this->userinputt, $this->iInputPos - 1, strlen($this->userinputt));
 //		}
 
 		ncurses_mvwaddstr($this->userinputw, 1, 0, $this->cl);
-		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] (debug: pos: " 
-. $this->iInputPos . " and len " . strlen($sInput) . " orig len " . strlen($this->userinputt) . ") " . $sInput);
+		ncurses_mvwaddstr($this->userinputw, 1, 0, "[" . $this->iCurrentBuffer . ":" . $this->aDisplayVars['window'] . "] " . $sInput);
+//(debug: pos: " . $this->iInputPos . " and len " . strlen($sInput) . " orig len " . strlen($this->userinputt) . ") " . $sInput);
 
 
 		ncurses_wrefresh($this->userinputw);
