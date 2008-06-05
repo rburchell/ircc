@@ -8,5 +8,5 @@ if (empty($ex[3]))
 	$ex[3] = "";
 
 $this->AddConnection();
-$this->IRC->connect($ex[1], $port, "", $this->username, "torc", "server", "torc - torx irc user", $this->nick, $ex[3]);
+$this->IRC->connect($ex[1], $port, $this->username, "ircc user", $this->nick, $ex[3]);
 ?>

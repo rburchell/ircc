@@ -31,6 +31,13 @@ class irc
 
 	public $torc;
 
+
+	private $sHostname;
+	private $iPort;
+	private $sUsername;
+	private $sRealname;
+	private $sPass;
+
 	function irc(&$torc)
 	{
 		$this->torc = $torc;
@@ -41,13 +48,15 @@ class irc
 		return "IRC";
 	}
 
+	function reconnect()
+	{
+		$this->connect($this->sHostname, $this->iPort, $this->sUsername, $this->sRealname, $this->usernick, $this->sPass);
+	}
+
 	function connect(
 		$server,				// (string) the server to connect to
 		$port,					// (int) the port to connect to
-		$ssl,					// (bool) wether this connection uses ssl
 		$username,				// (string) username send in USER command
-		$hostname,				// (string) hostname send in USER command
-		$servername,				// (string) servername send in USER command
 		$realname,				// (string) realname send in USER command
 		$nick,					// (string) nick to specify in connect NICK command
 		$pass = ''				// (string) optional password for server
@@ -55,7 +64,8 @@ class irc
 	{
 		$this->autonick = 1;
 		$this->sServerName = $server; // XXX set on 001 as well
-		
+/*
+XXX fix this fucked up method of doing SSL.
 		if($ssl)
 		{
 			// if we use ssl we must prefix our connect host with ssl://
@@ -65,10 +75,20 @@ class irc
 		{
 			$cntserver = $server;
 		}
+*/
 
-		$this->sp = fsockopen($cntserver, $port, $errno, $errstr, 10);
+		$this->sHostname = $server;
+		$this->iPort = $port;
+		$this->sUsername = $username;
+		$this->sRealname = $realname;
+		$this->sPass = $pass;
 
-		if(!$this->sp){
+		$this->torc->output->Output(BUFFER_CURRENT, 'Connecting to ' . $server . ' on port ' . $port);
+
+		$this->sp = @fsockopen($server, $port, $errno, $errstr, 10);
+
+		if(!$this->sp)
+		{
 			$this->torc->output->Output(BUFFER_CURRENT, 'Connect error: '.$errno.' - '.$errstr);
 			return 1;		// in case of error: output the error and exit this function
 		}
@@ -83,7 +103,7 @@ class irc
 		if(!empty($pass))
 			$this->sendline('PASS '.$pass);
 		$this->sendline('NICK ' . $nick);
-		$this->sendline('USER '.$username.' '.$hostname.' '.$servername.' :'.$realname);
+		$this->sendline('USER '.$username.' * * :'.$realname);
 
 		// well, this should be it
 		// processing of the data we got back will not be done here
@@ -104,6 +124,13 @@ class irc
 	function procline ()
 	{
 		$this->line .= fgets($this->sp);
+
+		if ($this->line == "")
+		{
+			// trigger reconnect
+			$this->reconnect();
+			return 1;
+		}
 
 		if(substr($this->line, -1) != "\n")
 		{
@@ -379,6 +406,12 @@ class irc
 					// XXX this should probably use the command parser stuff, not just send raw.
 					$this->sendline($sOnConnect);
 				}
+			}
+
+			foreach ($this->chans as $sChan => $unused)
+			{
+				$this->torc->output->Output(BUFFER_CURRENT, "Reconnect: rejoining " . $sChan);
+				$this->sendline("JOIN " . $sChan);
 			}
 		}
 

@@ -58,21 +58,17 @@ class Client
 			{
 				$bFound = false;
 
-file_put_contents("getserv", "this->irc is " . $this->IRC->sServerName . "\n", FILE_APPEND);
 				foreach ($this->aServers as $oServer)
 				{
-file_put_contents("getserv", "Examining " . $oServer->sServerName . "\n", FILE_APPEND);
 					// XXX this should really compare object, not name...
 					if ($oServer === $this->IRC)
 					{
-file_put_contents("getserv", "true, returning next.\n", FILE_APPEND);
 						$bFound = true;
 					}
 					else
 					{
 						if ($bFound == true)
 						{
-file_put_contents("getserv", "and now returning " . $oServer->sServerName . "\n", FILE_APPEND);
 							return $oServer;
 						}
 					}
@@ -81,13 +77,11 @@ file_put_contents("getserv", "and now returning " . $oServer->sServerName . "\n"
 				// If we get here it was the last server in the array
 				foreach ($this->aServers as $oServer)
 				{
-file_put_contents("getserv", "found the last, returning the first: " . $oServer->sServerName . "\n", FILE_APPEND);
 					return $oServer; // so return the first.
 				}
 			}
 			else
 			{
-file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 				return $this->aServers[0];
 			}
 		}
@@ -299,10 +293,11 @@ file_put_contents("getserv", "Meh, only one conn.\n", FILE_APPEND);
 					$bSSL = true;
 				else
 					$bSSL = false;
+				// XXX ssl is unused currently
 
 				$this->AddConnection();
 				$this->output->Output(BUFFER_STATUS, "autoconnect: connecting to " . $sServer); 
-				$this->IRC->connect($sServer, $sPort, $bSSL, $sUser, "hostname", "servername", $sGecos, $sNick, $sPass);
+				$this->IRC->connect($sServer, $sPort, $sUser, $sGecos, $sNick, $sPass);
 			}
 		}
 	}
