@@ -1,0 +1,18 @@
+what is this?
+=============
+
+ircc is an ncurses IRC client, originally (and now very vaguely) based on torc,
+a PHP4 IRC client by rainman <rainman@darkwired.org>.
+
+ircc features a class-based design, seperate (reloadable, thanks to a PHP hack)
+commands, and a fairly simple ncurses interface that happened to more or less
+look and feel how I wanted it.
+
+I never really completed it. Put to public in case someone ever wants to make use
+of it somehow.
+
+contact
+=======
+
+All contact for this code should go to:
+ robin.burchell@collabora.co.uk
